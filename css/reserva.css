@@ -1,0 +1,337 @@
+/* ====================== */
+/* VARIABLES Y RESET      */
+/* ====================== */
+:root {
+    /* Colores principales */
+    --primary: #1a2980;
+    --secondary: #26d0ce;
+    --accent: #28C193;
+    --accent-alt: #92F6D1;
+    --error: #ff6b6b;
+    --light: #ffffff;
+    --dark: #003366;
+
+    /* Colores de texto */
+    --text-primary: #ffffff;
+    --text-secondary: #a6d9ff;
+
+    /* Transparencias */
+    --overlay-light: rgba(255, 255, 255, 0.15);
+    --overlay-dark: rgba(0, 0, 0, 0.3);
+    --overlay-medium: rgba(0, 30, 60, 0.6);
+
+    /* Bordes y sombras */
+    --border-radius: 20px;
+    --border-radius-small: 15px;
+    --border-light: 1px solid rgba(255, 255, 255, 0.15);
+    --box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    --box-shadow-light: 0 5px 15px rgba(0, 0, 0, 0.2);
+    --box-shadow-accent: 0 5px 20px rgba(40, 193, 147, 0.4);
+
+    /* Transiciones */
+    --transition: all 0.3s ease;
+    --transition-slow: all 0.5s ease;
+
+    /* Tamaños de fuente */
+    --font-size-xl: 3.5rem;
+    --font-size-lg: 2.5rem;
+    --font-size-md: 1.8rem;
+    --font-size-sm: 1.2rem;
+    --font-size-xs: 0.9rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Macha', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background:
+        linear-gradient(rgba(10, 30, 60, 0.85), rgba(15, 40, 80, 0.9)),
+        url('../Imagenes/Mar\ azul.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(38, 208, 206, 0.1) 0%, transparent 20%);
+    z-index: -1;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+    margin-top: 80px;
+    padding-bottom: 40px; /* Añadido espacio en la parte inferior */
+}
+
+/* ====================== */
+/* HEADER NAVEGACIÓN      */
+/* ====================== */
+/* ... (sin cambios) ... */
+
+/* ====================== */
+/* HEADER PRINCIPAL       */
+/* ====================== */
+/* ... (sin cambios) ... */
+
+/* ====================== */
+/* CARRUSEL               */
+/* ====================== */
+.carousel-container {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    background: var(--overlay-medium);
+    backdrop-filter: blur(10px);
+    border: var(--border-light);
+    animation: scaleIn 0.8s ease-out;
+    min-height: 500px; /* Altura mínima para evitar colapso */
+}
+
+.carousel {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    min-height: 500px; /* Asegura que el carrusel tenga altura */
+}
+
+.carousel-item {
+    min-width: 100%;
+    padding: 40px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 500px; /* Altura mínima para cada item */
+}
+
+/* ... (resto sin cambios) ... */
+
+.promo-image {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 5px solid var(--overlay-light);
+    object-fit: cover;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    transition: var(--transition);
+    display: block; /* Asegura que se muestra como bloque */
+}
+
+/* ... (resto sin cambios) ... */
+
+/* ====================== */
+/* FEATURES               */
+/* ====================== */
+/* ... (sin cambios) ... */
+
+/* ====================== */
+/* FORMULARIO DE RESERVA  */
+/* ====================== */
+#reservation-form {
+    background: var(--overlay-medium);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    max-width: 800px;
+    margin: 40px auto;
+    box-shadow: var(--box-shadow);
+    border: var(--border-light);
+}
+
+/* ... (sin cambios) ... */
+
+/* Mejorar contraste en formulario */
+select, input, textarea {
+    background: rgba(0, 20, 40, 0.7);
+    border: 1px solid #28C193;
+    color: #fff; /* Asegurar color de texto blanco */
+}
+
+select:focus, input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent-alt);
+    box-shadow: 0 0 0 2px rgba(146, 246, 209, 0.5); /* Resaltar al enfocar */
+}
+
+/* Destacar total */
+.price-total {
+    color: #92F6D1;
+    font-size: 1.4em;
+}
+
+/* Estilo para opciones del select */
+#tour option {
+    background: rgba(0, 30, 60, 0.9);
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ====================== */
+/* BOTONES                */
+/* ====================== */
+.submit-btn, .book-btn {
+    background: linear-gradient(to right, var(--accent-alt), var(--accent));
+    color: var(--dark);
+    border: none;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-block;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-btn {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.book-btn {
+    margin-top: 20px;
+}
+
+.submit-btn:hover, .book-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow-accent);
+}
+
+.submit-btn::before, .book-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: var(--transition-slow);
+}
+
+.submit-btn:hover::before, .book-btn:hover::before {
+    left: 100%;
+}
+
+/* ====================== */
+/* FOOTER & CUSTOMER SERVICE */
+/* ====================== */
+/* ... (sin cambios) ... */
+
+/* ====================== */
+/* ANIMACIONES            */
+/* ====================== */
+/* ... (sin cambios) ... */
+
+/* ====================== */
+/* RESPONSIVE             */
+/* ====================== */
+@media (max-width: 768px) {
+    :root {
+        --font-size-xl: 2.5rem;
+        --font-size-lg: 1.8rem;
+        --font-size-md: 1.4rem;
+    }
+
+    .hero-header h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    .hero-header p {
+        font-size: 1rem;
+    }
+
+    .promo-image {
+        width: 180px;
+        height: 180px;
+    }
+
+    .features {
+        gap: 15px;
+    }
+
+    .feature {
+        width: 160px;
+        padding: 15px;
+    }
+
+    /* Form responsive */
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-row .form-group {
+        width: 100%;
+        flex: none;
+    }
+    
+    .carousel-container, .carousel, .carousel-item {
+        min-height: 450px; /* Ajustar para tablet */
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --font-size-xl: 2rem;
+        --font-size-lg: 1.5rem;
+        --font-size-md: 1.2rem;
+    }
+
+    .carousel-container, .carousel, .carousel-item {
+        min-height: 550px; /* Ajustar para móvil */
+    }
+
+    .carousel-item {
+        padding: 30px 15px;
+    }
+
+    .book-btn, .submit-btn {
+        padding: 12px 35px;
+        font-size: 1rem;
+    }
+
+    .promo-image {
+        width: 150px;
+        height: 150px;
+    }
+
+    .features {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .feature {
+        width: 100%;
+        max-width: 300px;
+    }
+}

@@ -1,0 +1,408 @@
+/* ============ HOME PAGE STYLES ============ */
+.home-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Secondary Navigation */
+.secondary-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  margin-bottom: 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.secondary-nav ul {
+  display: flex;
+  gap: 25px;
+  list-style: none;
+}
+
+.secondary-nav a {
+  color: var(--color-light);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 15px;
+  border-radius: var(--border-radius-small);
+  transition: var(--transition);
+}
+
+.secondary-nav a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* User Icon */
+.user-icon-container {
+  position: relative;
+}
+
+.user-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.user-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.user-icon i {
+  font-size: 1.2rem;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: var(--color-dark);
+  border-radius: var(--border-radius-small);
+  box-shadow: var(--box-shadow);
+  width: 220px;
+  z-index: 100;
+  display: none;
+}
+
+.user-icon:hover .user-dropdown {
+  display: block;
+}
+
+.user-dropdown a {
+  display: block;
+  padding: 12px 20px;
+  color: var(--color-light);
+  text-decoration: none;
+  transition: var(--transition);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-dropdown a:last-child {
+  border-bottom: none;
+}
+
+.user-dropdown a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  padding-left: 25px;
+}
+
+.user-dropdown i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  height: 80vh;
+  margin-bottom: 50px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.hero-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 15%;
+  left: 10%;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.hero-content h1 {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 15px;
+}
+
+.title-line {
+  display: block;
+  color: var(--color-secondary);
+}
+
+.subtitle {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Gallery Section */
+.gallery-section {
+  margin: 80px 0;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 4px;
+  background: var(--color-secondary);
+  margin: 15px auto;
+  border-radius: 2px;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 60px;
+}
+
+.gallery-item {
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.gallery-item:hover {
+  transform: translateY(-10px);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+}
+
+.img-caption {
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.7);
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+/* Map Section */
+.map-section {
+  margin: 60px 0;
+}
+
+.map-title .first-line {
+  display: block;
+  font-size: 1.8rem;
+}
+
+.map-title .second-line {
+  display: block;
+  font-size: 2.5rem;
+  color: var(--color-secondary);
+}
+
+.map-container {
+  height: 450px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+.map-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* About Section */
+.about {
+  display: flex;
+  gap: 40px;
+  margin: 80px 0;
+  align-items: center;
+}
+
+.about-image {
+  flex: 1;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+.about-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.about-text {
+  flex: 1;
+}
+
+.about-text h2 {
+  font-size: 2.2rem;
+  margin-bottom: 25px;
+  color: var(--color-secondary);
+}
+
+.about-text p {
+  margin-bottom: 20px;
+  line-height: 1.7;
+  font-size: 1.1rem;
+}
+
+/* Promo Section */
+.promo {
+  display: flex;
+  gap: 40px;
+  margin: 80px 0;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  border-radius: var(--border-radius);
+}
+
+.promo .cta {
+  flex: 1;
+}
+
+.promo .cta h2 {
+  font-size: 2.2rem;
+  margin-bottom: 25px;
+  line-height: 1.3;
+}
+
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-secondary);
+  color: var(--color-dark);
+  padding: 15px 35px;
+  border-radius: var(--border-radius-pill);
+  text-decoration: none;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.btn-pill:hover {
+  background: var(--color-accent);
+  transform: translateY(-5px);
+}
+
+.btn-icon {
+  margin-left: 10px;
+  font-size: 1.2rem;
+}
+
+.promo .image {
+  flex: 1;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+.promo .image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Weather Widget */
+.weather {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--border-radius);
+  padding: 25px;
+  margin: 50px auto;
+  max-width: 500px;
+}
+
+.weather-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.weather-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.weather-icon {
+  font-size: 3.5rem;
+  color: var(--color-secondary);
+}
+
+.weather-temp {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.weather-desc {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.weather-detail {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.weather-time {
+  text-align: right;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Login Overlay */
+.login-overlay {
+  /* Mantener tus estilos originales */
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .about, .promo {
+    flex-direction: column;
+  }
+  
+  .hero-content h1 {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .secondary-nav {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .hero-content {
+    left: 5%;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.8rem;
+  }
+}
