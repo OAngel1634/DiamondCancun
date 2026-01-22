@@ -1,54 +1,37 @@
 <?php
-session_start();
-require_once 'Sesion.php';
-require_once 'Usuario.php';
-require_once 'conexion.php';
+session_start(); // Usar sesiones PHP nativas
 
-// Función para redirigir a login
-function redirectToLogin() {
-    setcookie('db_session', '', time() - 3600, '/');
+// Verificar sesión PHP (mismo método que perfil.php)
+if (!isset($_SESSION['usuario_id'])) {
     header("Location: inicio-sesion.php");
     exit();
 }
 
-// Verificar sesión
-if (empty($_COOKIE['db_session'])) {
-    redirectToLogin();
-}
+require_once 'Usuario.php';
+require_once 'conexion.php';
 
-// Validar sesión
-$sesion = new Sesion();
-$sesion_valida = $sesion->validar($_COOKIE['db_session']);
-
-if (!$sesion_valida) {
-    redirectToLogin();
-}
-
-// Obtener información del usuario
+// Obtener información del usuario (idéntico a perfil.php)
 $usuario = new Usuario();
-if (!$usuario->buscarPorId($sesion_valida['usuario_id'])) {
-    redirectToLogin();
+if (!$usuario->buscarPorId($_SESSION['usuario_id'])) {
+    session_destroy();
+    header("Location: inicio-sesion.php");
+    exit();
 }
-
-if (isset($_GET['id'])) {
-    $metodoId = $_GET['id'];
-    $stmt = $pdo->prepare("SELECT * FROM metodos_pago WHERE id = ? AND usuario_id = ?");
-    $stmt->execute([$metodoId, $usuario->id]);
-    $metodo = $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-$metodoId = $_GET['id'];
 
 // Conectar a la base de datos
 $database = new Database();
 $pdo = $database->connect();
 
-// Obtener el método de pago
-$stmt = $pdo->prepare("SELECT * FROM metodos_pago WHERE id = ? AND usuario_id = ?");
-$stmt->execute([$metodoId, $usuario->id]);
-$metodo = $stmt->fetch(PDO::FETCH_ASSOC);
+// Obtener ID del método de pago
+$metodoId = isset($_GET['id']) ? $_GET['id'] : null;
 
-if (!$metodo) {
+if ($metodoId) {
+    $stmt = $pdo->prepare("SELECT * FROM metodos_pago WHERE id = ? AND usuario_id = ?");
+    $stmt->execute([$metodoId, $usuario->id]);
+    $metodo = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+if (!$metodoId || !$metodo) {
     header("Location: pagos.php?error=no_encontrado");
     exit();
 }

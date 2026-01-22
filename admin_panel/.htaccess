@@ -1,0 +1,14 @@
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# Redireccionar todo a index.php
+RewriteEngine On
+RewriteBase /admin_panel/
+
+# Redirigir solicitudes vacías al login
+RewriteRule ^$ login.php [L]
+
+# Redirigir solicitudes no-ficheros a index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . index.php [L]

@@ -1,14 +1,24 @@
 <?php
 session_start();
-include('conexion.php');
 
-if (!isset($_SESSION['usuario_id']) || !isset($_GET['id'])) {
-    header("Location: login.php");
+// Verificar sesión
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: inicio-sesion.php");
     exit();
 }
 
-$reserva_id = $_GET['id'];
-$usuario_id = $_SESSION['usuario_id'];
+require_once 'Usuario.php';
+require_once 'conexion.php';
+
+// Obtener usuario
+$usuario = new Usuario();
+if (!$usuario->buscarPorId($_SESSION['usuario_id'])) {
+    session_destroy();
+    header("Location: inicio-sesion.php");
+    exit();
+}
+
+// El resto de tu código para la página específica...
 
 // Obtener detalles de la reserva
 $query = $conn->prepare("

@@ -1,49 +1,33 @@
 <?php
-session_start();
-require_once 'Sesion.php';
-require_once 'Usuario.php';
-require_once 'conexion.php'; // Usamos tu archivo de conexión
+session_start(); // Usar sesiones PHP nativas
 
-// Función para redirigir a login
-function redirectToLogin() {
-    setcookie('db_session', '', time() - 3600, '/');
+// Verificar sesión PHP (mismo método que perfil.php)
+if (!isset($_SESSION['usuario_id'])) {
     header("Location: inicio-sesion.php");
     exit();
 }
 
-// Verificar sesión
-if (empty($_COOKIE['db_session'])) {
-    redirectToLogin();
-}
+require_once 'Usuario.php';
+require_once 'conexion.php';
 
-// Validar sesión
-$sesion = new Sesion();
-$sesion_valida = $sesion->validar($_COOKIE['db_session']);
-
-if (!$sesion_valida) {
-    redirectToLogin();
-}
-
-// Obtener información del usuario
+// Obtener información del usuario (idéntico a perfil.php)
 $usuario = new Usuario();
-if (!$usuario->buscarPorId($sesion_valida['usuario_id'])) {
-    redirectToLogin();
+if (!$usuario->buscarPorId($_SESSION['usuario_id'])) {
+    session_destroy();
+    header("Location: inicio-sesion.php");
+    exit();
 }
 
 // Crear instancia de Database y conectar
 $database = new Database();
 $pdo = $database->connect();
 
-// Obtener preferencias del usuario
-$stmt = $pdo->prepare("SELECT * FROM preferencias WHERE usuario_id = ?");
-$stmt->execute([$usuario->id]);
-$preferencias = $stmt->fetch(PDO::FETCH_ASSOC);
-
 // Obtener sección a editar
 $seccion = isset($_GET['seccion']) ? $_GET['seccion'] : 'basica';
 
 // Procesar formulario si se envió
 $mensaje = '';
+$mensaje_tipo = ''; // Inicializar variable para tipo de mensaje (éxito/error)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($seccion === 'basica') {
@@ -57,9 +41,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, fecha_nacimiento = ? WHERE id = ?");
             $stmt->execute([$nombre, $fecha_nacimiento, $usuario->id]);
             
-            // Actualizar preferencias
-            $stmt = $pdo->prepare("UPDATE preferencias SET genero = ?, facilidades_acceso = ? WHERE usuario_id = ?");
-            $stmt->execute([$genero, $facilidades, $usuario->id]);
+            // Obtener preferencias actualizadas después de la operación
+            $stmt = $pdo->prepare("SELECT * FROM preferencias WHERE usuario_id = ?");
+            $stmt->execute([$usuario->id]);
+            $preferencias = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // VERIFICAR SI EXISTEN PREFERENCIAS
+            if (!$preferencias) {
+                // CREAR NUEVO REGISTRO SI NO EXISTE
+                $stmt = $pdo->prepare("INSERT INTO preferencias (usuario_id, genero, facilidades_acceso) VALUES (?, ?, ?)");
+                $stmt->execute([$usuario->id, $genero, $facilidades]);
+            } else {
+                // Actualizar preferencias existentes
+                $stmt = $pdo->prepare("UPDATE preferencias SET genero = ?, facilidades_acceso = ? WHERE usuario_id = ?");
+                $stmt->execute([$genero, $facilidades, $usuario->id]);
+            }
             
             $mensaje = "¡Información básica actualizada correctamente!";
             
@@ -83,21 +79,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $experiencia_favorita = $_POST['experiencia_favorita'];
             $preferencias_gastronomicas = $_POST['preferencias_gastronomicas'];
             
-            // Actualizar preferencias
-            $stmt = $pdo->prepare("UPDATE preferencias SET 
-                notificaciones = ?, 
-                idioma = ?, 
-                experiencia_favorita = ?, 
-                preferencias_gastronomicas = ? 
-                WHERE usuario_id = ?");
-                
-            $stmt->execute([
-                $notificaciones,
-                $idioma,
-                $experiencia_favorita,
-                $preferencias_gastronomicas,
-                $usuario->id
-            ]);
+            // Obtener preferencias actualizadas después de la operación
+            $stmt = $pdo->prepare("SELECT * FROM preferencias WHERE usuario_id = ?");
+            $stmt->execute([$usuario->id]);
+            $preferencias = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // VERIFICAR SI EXISTEN PREFERENCIAS
+            if (!$preferencias) {
+                // CREAR NUEVO REGISTRO SI NO EXISTE
+                $stmt = $pdo->prepare("INSERT INTO preferencias 
+                    (usuario_id, notificaciones, idioma, experiencia_favorita, preferencias_gastronomicas) 
+                    VALUES (?, ?, ?, ?, ?)");
+                    
+                $stmt->execute([
+                    $usuario->id,
+                    $notificaciones,
+                    $idioma,
+                    $experiencia_favorita,
+                    $preferencias_gastronomicas
+                ]);
+            } else {
+                // Actualizar preferencias existentes
+                $stmt = $pdo->prepare("UPDATE preferencias SET 
+                    notificaciones = ?, 
+                    idioma = ?, 
+                    experiencia_favorita = ?, 
+                    preferencias_gastronomicas = ? 
+                    WHERE usuario_id = ?");
+                    
+                $stmt->execute([
+                    $notificaciones,
+                    $idioma,
+                    $experiencia_favorita,
+                    $preferencias_gastronomicas,
+                    $usuario->id
+                ]);
+            }
             
             $mensaje = "¡Preferencias actualizadas correctamente!";
         }
@@ -112,6 +129,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensaje = "Error: " . $e->getMessage();
         $mensaje_tipo = 'error';
     }
+}
+
+// Obtener preferencias del usuario (si no se procesó POST o para mostrar datos iniciales)
+if (!isset($preferencias)) {
+    $stmt = $pdo->prepare("SELECT * FROM preferencias WHERE usuario_id = ?");
+    $stmt->execute([$usuario->id]);
+    $preferencias = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 // Obtener datos reales del usuario

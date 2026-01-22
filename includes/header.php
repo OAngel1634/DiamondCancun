@@ -378,7 +378,7 @@
                 </ul>
             </nav>
             
-            <a href="reserva.php" class="reserve-btn desktop">
+            <a href="reser.php" class="reserve-btn desktop">
                 <i class="fas fa-calendar-check"></i> Reserva
             </a>
             

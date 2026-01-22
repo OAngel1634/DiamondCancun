@@ -1,67 +1,133 @@
 <?php
+// Configuración segura de sesiones
+$isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+session_set_cookie_params([
+    'lifetime' => 86400 * 30,
+    'path' => '/',
+    'domain' => $_SERVER['HTTP_HOST'],
+    'secure' => $isSecure,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
+// ELIMINADO: session_name('user_session'); // Causa conflicto con otras páginas
 session_start();
 
+// Configuración de errores
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// INCLUSIÓN SIMPLIFICADA - Usuario.php está en el mismo directorio
+require_once __DIR__ . '/Usuario.php';
+
 // Inicializar variables
-$googleAuthUrl = '';
 $error = '';
-$success = '';
+$inputValues = [
+    'nombre' => '',
+    'email' => ''
+];
 
-// Incluir autoloader para Google API
-$autoloadPath = __DIR__ . '/../vendor/autoload.php';
-if (file_exists($autoloadPath)) {
-    require_once $autoloadPath;
-    
-    // Configuración de Google
-    $clientID = '1089751372954-nasuroolveft9fek524am4u32tnfk32g.apps.googleusercontent.com';
-    $clientSecret = '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';
-    $redirectUri = 'http://localhost/laslos/DiamondPrueba/html/registro.php';
-    
-    try {
-        $client = new Google_Client();
-        $client->setClientId($clientID);
-        $client->setClientSecret($clientSecret);
-        $client->setRedirectUri($redirectUri);
-        $client->addScope("email");
-        $client->addScope("profile");
-        $googleAuthUrl = $client->createAuthUrl();
-    } catch (Exception $e) {
-        $error = "Error al configurar Google: " . $e->getMessage();
-    }
-} else {
-    $error = "Error: No se encontró el autoloader de Google";
-}
-
-// Procesar formulario de registro
+// Procesar formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
-    // ... (código existente para procesar el formulario) ...
+    try {
+        // Sanitizar entradas
+        $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        $password = $_POST['password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        
+        // Guardar valores para repoblar formulario
+        $inputValues['nombre'] = $nombre;
+        $inputValues['email'] = $email;
+        
+        // Validaciones
+        if (empty($nombre)) {
+            throw new Exception("El nombre es obligatorio");
+        }
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Email inválido");
+        }
+        if (strlen($password) < 8) {
+            throw new Exception("La contraseña debe tener al menos 8 caracteres");
+        }
+        if (!preg_match('/[A-Z]/', $password)) {
+            throw new Exception("La contraseña debe contener al menos una mayúscula");
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            throw new Exception("La contraseña debe contener al menos un número");
+        }
+        if ($password !== $confirm_password) {
+            throw new Exception("Las contraseñas no coinciden");
+        }
+        if (empty($_POST['terms'])) {
+            throw new Exception("Debes aceptar los términos y condiciones");
+        }
+        
+        // Crear usuario
+        $usuario = new Usuario();
+        
+        if ($usuario->buscarPorEmail($email)) {
+            throw new Exception("Este email ya está registrado");
+        }
+        
+        $usuario_id = $usuario->crear([
+            'nombre' => $nombre,
+            'email' => $email,
+            'password' => $password
+        ]);
+        
+        // Verificar creación exitosa
+        if (!$usuario_id) {
+            throw new Exception("Error al crear el usuario en la base de datos");
+        }
+        
+        // ELIMINADO: session_regenerate_id(true); // Causaba problemas
+        
+        // Establecer sesión
+        $_SESSION['usuario_id'] = $usuario_id;
+        $_SESSION['usuario_email'] = $email;
+        $_SESSION['usuario_nombre'] = $nombre;
+        
+        // Redirigir al dashboard
+        header("Location: dashboard.php");
+        exit();
+        
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
 }
+
+// Asegurar que $error sea string
+$error = (string)$error;
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Diamond Bright Catamarans</title>
+    <title>Registro - Diamond Bright</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Estilos optimizados y mejorados */
+        :root {
+            --primary: #003366;
+            --secondary: #0099cc;
+            --accent: #D4AF37;
+            --light-bg: #f0f8ff;
+            --white: #ffffff;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --danger: #d32f2f;
+            --border-radius: 15px;
+            --shadow: 0 8px 30px rgba(0, 51, 102, 0.2);
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        :root {
-            --primary-blue: #003366;
-            --secondary-blue: #0099cc;
-            --accent-gold: #D4AF37;
-            --light-bg: #f0f8ff;
-            --white: #ffffff;
-            --light-gray: #e0e0e0;
-            --text-dark: #333333;
-            --text-light: #666666;
-            --shadow: 0 8px 20px rgba(0, 51, 102, 0.15);
-            --transition: all 0.3s ease;
         }
         
         body {
@@ -73,469 +139,335 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
             padding: 20px;
         }
         
-        .app-container {
-            display: flex;
-            max-width: 1100px;
-            width: 100%;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
+        .container {
             background: var(--white);
-        }
-        
-        .brand-section {
-            flex: 1;
-            background: linear-gradient(to bottom right, var(--primary-blue), var(--secondary-blue));
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            color: var(--white);
-            position: relative;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
             overflow: hidden;
         }
         
-        .brand-section::before {
-            content: "";
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .brand-section::after {
-            content: "";
-            position: absolute;
-            bottom: -80px;
-            left: -30px;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .brand-header {
-            position: relative;
-            z-index: 2;
+        .header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 30px 20px;
+            text-align: center;
         }
         
         .logo {
+            font-size: 28px;
+            font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-        
-        .logo-icon {
-            font-size: 28px;
-            color: var(--accent-gold);
-        }
-        
-        .logo-text {
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-        
-        .brand-title {
-            font-size: 32px;
-            margin-bottom: 20px;
-            font-weight: 700;
-            line-height: 1.3;
-        }
-        
-        .brand-subtitle {
-            font-size: 18px;
-            opacity: 0.9;
-            line-height: 1.6;
-            max-width: 400px;
-        }
-        
-        .brand-image {
-            margin-top: 30px;
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .brand-footer {
-            position: relative;
-            z-index: 2;
-            font-size: 14px;
-            opacity: 0.8;
-            margin-top: 20px;
-        }
-        
-        .register-section {
-            flex: 1;
-            padding: 60px 40px;
-            display: flex;
-            flex-direction: column;
             justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
         }
         
-        .register-header {
-            text-align: center;
-            margin-bottom: 40px;
+        .logo i {
+            color: var(--accent);
         }
         
-        .register-title {
-            font-size: 28px;
-            color: var(--primary-blue);
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .register-subtitle {
-            color: var(--text-light);
-            font-size: 16px;
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
         }
         
         .form-container {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
+            padding: 30px;
         }
         
-        .input-group {
+        .form-group {
             margin-bottom: 20px;
-            position: relative;
         }
         
-        .input-group label {
+        label {
             display: block;
             margin-bottom: 8px;
-            color: var(--text-dark);
             font-weight: 500;
-            font-size: 15px;
+            color: var(--text-dark);
         }
         
-        .input-group input {
+        input {
             width: 100%;
-            height: 50px;
-            padding: 0 15px;
-            border: 2px solid var(--light-gray);
-            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             font-size: 16px;
-            transition: var(--transition);
+            transition: all 0.3s;
         }
         
-        .input-group input:focus {
-            border-color: var(--secondary-blue);
+        input:focus {
+            border-color: var(--secondary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 153, 204, 0.2);
+            box-shadow: 0 0 0 3px rgba(0,153,204,0.1);
         }
         
-        .input-group i {
-            position: absolute;
-            right: 15px;
-            top: 40px;
-            color: var(--text-light);
+        .error {
+            color: var(--danger);
+            background: #ffebee;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #ffcdd2;
+            display: <?= $error ? 'block' : 'none' ?>;
         }
         
-        .btn {
+        button {
             width: 100%;
-            height: 50px;
+            padding: 16px;
+            background: var(--primary);
+            color: var(--white);
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s;
+            margin-top: 10px;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             gap: 10px;
         }
         
-        .btn-primary {
-            background: var(--primary-blue);
-            color: var(--white);
-            margin-bottom: 20px;
-        }
-        
-        .btn-primary:hover {
+        button:hover {
             background: #002244;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 51, 102, 0.3);
-        }
-        
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 25px 0;
-            color: var(--text-light);
-        }
-        
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--light-gray);
-        }
-        
-        .divider-text {
-            padding: 0 15px;
-            font-size: 14px;
-        }
-        
-        .social-login {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .social-btn {
-            flex: 1;
-            background: var(--white);
-            border: 1px solid var(--light-gray);
-            color: var(--text-dark);
-            text-decoration: none;
-            text-align: center;
-            line-height: 50px;
-        }
-        
-        .social-btn:hover {
-            border-color: var(--secondary-blue);
-            color: var(--secondary-blue);
-            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 51, 102, 0.2);
         }
         
         .login-link {
             text-align: center;
-            font-size: 15px;
+            margin-top: 25px;
             color: var(--text-light);
         }
         
         .login-link a {
-            color: var(--secondary-blue);
-            text-decoration: none;
+            color: var(--secondary);
             font-weight: 600;
-            transition: var(--transition);
+            text-decoration: none;
         }
         
         .login-link a:hover {
             text-decoration: underline;
         }
         
-        /* Mensajes */
-        .message {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .error-message {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
-        }
-        
-        .success-message {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-        
-        /* Términos y condiciones */
         .terms {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-top: 20px;
             font-size: 14px;
             color: var(--text-light);
         }
         
         .terms input {
-            margin-top: 3px;
+            width: auto;
+            margin-top: 5px;
         }
         
-        /* Responsive design */
-        @media (max-width: 900px) {
-            .app-container {
-                flex-direction: column;
-            }
-            
-            .brand-section {
-                padding: 30px;
-                text-align: center;
-            }
-            
-            .brand-title {
-                font-size: 26px;
-            }
-            
-            .brand-subtitle {
-                max-width: 100%;
-            }
-            
-            .brand-image {
-                margin: 20px auto;
-            }
-            
-            .register-section {
-                padding: 40px 30px;
-            }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 14px;
+            border-top: 1px solid #eee;
         }
         
-        @media (max-width: 480px) {
-            .social-login {
-                flex-direction: column;
-            }
-            
-            .brand-title {
-                font-size: 24px;
-            }
-            
-            .register-title {
-                font-size: 24px;
-            }
+        .password-strength {
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .strength-meter {
+            height: 5px;
+            background: #eee;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sección de marca -->
-        <div class="brand-section">
-            <div class="brand-header">
-                <div class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-ship"></i>
-                    </div>
-                    <div class="logo-text">DIAMOND BRIGHT</div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-ship"></i>
+                <span>DIAMOND BRIGHT</span>
+            </div>
+            <h1>Crea tu cuenta</h1>
+        </div>
+        
+        <div class="form-container">
+            <div class="error" id="error-message"><?= htmlspecialchars($error) ?></div>
+            
+            <form method="POST" id="registration-form">
+                <div class="form-group">
+                    <label for="nombre">Nombre completo</label>
+                    <input type="text" id="nombre" name="nombre" required 
+                           value="<?= htmlspecialchars($inputValues['nombre']) ?>">
                 </div>
-                <h1 class="brand-title">Explora las aguas cristalinas de Isla Mujeres</h1>
-                <p class="brand-subtitle">Vive la experiencia de navegar en nuestros catamaranes de lujo y descubre la belleza del Caribe Mexicano.</p>
-            </div>
-            <div class="brand-image">
-                <i class="fas fa-sailboat" style="font-size: 180px; color: var(--accent-gold); opacity: 0.7;"></i>
-            </div>
-            <div class="brand-footer">
-                © 2023 Diamond Bright Catamarans. Todos los derechos reservados.
+                
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" id="email" name="email" required 
+                           value="<?= htmlspecialchars($inputValues['email']) ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                    <div class="password-strength">
+                        <div class="strength-meter">
+                            <div class="strength-fill" id="strength-fill"></div>
+                        </div>
+                        <div id="strength-text">Seguridad: baja</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirmar contraseña</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                
+                <div class="terms">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms">Acepto los <a href="politica-privacidad.php" target="_blank">términos y condiciones</a> y <a href="politica-privacidad.php" target="_blank">política de privacidad</a></label>
+                </div>
+                
+                <button type="submit" name="registro">
+                    <i class="fas fa-user-plus"></i> Crear cuenta
+                </button>
+            </form>
+            
+            <div class="login-link">
+                ¿Ya tienes una cuenta? <a href="inicio-sesion.php">Inicia sesión</a>
             </div>
         </div>
         
-        <!-- Sección de registro -->
-        <div class="register-section">
-            <div class="register-header">
-                <h2 class="register-title">Crea tu cuenta</h2>
-                <p class="register-subtitle">Únete a Diamond Bright y comienza a explorar</p>
-            </div>
-            
-            <div class="form-container">
-                <?php if ($error): ?>
-                    <div class="message error-message"><?php echo $error; ?></div>
-                <?php endif; ?>
-                
-                <?php if ($success): ?>
-                    <div class="message success-message"><?php echo $success; ?></div>
-                <?php endif; ?>
-                
-                <form id="registrationForm" method="post">
-                    <div class="input-group">
-                        <label for="nombre">Nombre completo</label>
-                        <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required>
-                        <i class="fas fa-user"></i>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="email">Correo electrónico</label>
-                        <input type="email" id="email" name="email" placeholder="tu@email.com" required>
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="password">Contraseña</label>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required>
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="confirm_password">Confirmar contraseña</label>
-                        <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    
-                    <div class="terms">
-                        <input type="checkbox" id="terms" name="terms" required>
-                        <label for="terms">Acepto los <a href="Terminoscondiciones.php">Términos y Condiciones</a> y la <a href="politica.php">Política de Privacidad</a> de Diamond Bright</label>
-                    </div>
-                    
-                    <button type="submit" name="registro" class="btn btn-primary">
-                        <i class="fas fa-user-plus"></i> Registrarse
-                    </button>
-                </form>
-                
-                <div class="divider">
-                    <div class="divider-text">o regístrate con</div>
-                </div>
-                
-                <?php if ($googleAuthUrl): ?>
-                    <div class="social-login">
-                        <a href="<?php echo $googleAuthUrl; ?>" class="btn social-btn">
-                            <i class="fab fa-google"></i> Google
-                        </a>
-                    </div>
-                <?php endif; ?>
-                
-                <p class="login-link">
-                    ¿Ya tienes una cuenta? <a href="inicio-sesion.php">Inicia sesión</a>
-                </p>
-            </div>
+        <div class="footer">
+            &copy; <?= date('Y') ?> Diamond Bright Catamarans. Todos los derechos reservados.
         </div>
     </div>
 
     <script>
-        // Validación del formulario de registro
         document.addEventListener('DOMContentLoaded', function() {
-            const registrationForm = document.getElementById('registrationForm');
+            const form = document.getElementById('registration-form');
+            const errorMessage = document.getElementById('error-message');
+            const passwordInput = document.getElementById('password');
+            const strengthFill = document.getElementById('strength-fill');
+            const strengthText = document.getElementById('strength-text');
             
-            registrationForm.addEventListener('submit', function(e) {
-                const password = document.getElementById('password').value;
+            // Medidor de fortaleza de contraseña
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                
+                // Longitud mínima
+                if (password.length >= 8) strength += 1;
+                
+                // Contiene mayúsculas
+                if (/[A-Z]/.test(password)) strength += 1;
+                
+                // Contiene números
+                if (/[0-9]/.test(password)) strength += 1;
+                
+                // Contiene caracteres especiales
+                if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+                
+                // Actualizar barra de progreso
+                const width = strength * 25;
+                strengthFill.style.width = `${width}%`;
+                
+                // Actualizar texto
+                let text = '';
+                let color = '';
+                switch(strength) {
+                    case 0:
+                    case 1:
+                        text = 'Muy débil';
+                        color = '#d32f2f';
+                        break;
+                    case 2:
+                        text = 'Débil';
+                        color = '#ff9800';
+                        break;
+                    case 3:
+                        text = 'Buena';
+                        color = '#4caf50';
+                        break;
+                    case 4:
+                        text = 'Fuerte';
+                        color = '#2e7d32';
+                        break;
+                }
+                
+                strengthFill.style.backgroundColor = color;
+                strengthText.textContent = `Seguridad: ${text}`;
+                strengthText.style.color = color;
+            });
+            
+            // Validación del formulario
+            form.addEventListener('submit', function(e) {
+                const password = passwordInput.value;
                 const confirmPassword = document.getElementById('confirm_password').value;
                 const terms = document.getElementById('terms').checked;
                 
-                if (!terms) {
+                // Resetear mensaje de error
+                errorMessage.style.display = 'none';
+                
+                // Validación de contraseña
+                if (password.length < 8) {
                     e.preventDefault();
-                    alert('Debes aceptar los términos y condiciones');
+                    errorMessage.textContent = 'La contraseña debe tener al menos 8 caracteres';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                if (!/[A-Z]/.test(password)) {
+                    e.preventDefault();
+                    errorMessage.textContent = 'La contraseña debe contener al menos una mayúscula';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                if (!/[0-9]/.test(password)) {
+                    e.preventDefault();
+                    errorMessage.textContent = 'La contraseña debe contener al menos un número';
+                    errorMessage.style.display = 'block';
                     return;
                 }
                 
                 if (password !== confirmPassword) {
                     e.preventDefault();
-                    alert('Las contraseñas no coinciden');
+                    errorMessage.textContent = 'Las contraseñas no coinciden';
+                    errorMessage.style.display = 'block';
                     return;
                 }
                 
-                // Mostrar feedback visual
-                const submitBtn = registrationForm.querySelector('.btn-primary');
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta';
+                if (!terms) {
+                    e.preventDefault();
+                    errorMessage.textContent = 'Debes aceptar los términos y condiciones';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Mostrar estado de carga
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
                 submitBtn.disabled = true;
             });
-            
-            // Efectos para los botones
-            document.querySelectorAll('.social-btn').forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px)';
-                    this.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = 'none';
-                });
-            });
         });
-          echo 
-    sessionStorage.setItem("loginSuccess", "true");
-    window.location.href = "index.php";
-
     </script>
 </body>
 </html>

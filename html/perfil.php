@@ -549,12 +549,6 @@ $porcentaje = round(($camposCompletados / $totalCampos) * 100);
 
                 <ul class="navigation">
                     <li>
-                        <a href="dashboard.php">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <div class="text">Dashboard</div>
-                        </a>
-                    </li>
-                    <li>
                         <a href="perfil.php" class="active">
                             <i class="fas fa-user"></i>
                             <div class="text">Perfil</div>
