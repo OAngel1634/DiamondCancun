@@ -1,5 +1,7 @@
 {
+    "name": "diamond/cancun",
+    "description": "Proyecto Diamond Cancun",
     "require": {
-        "google/apiclient": "^2.18"
+        "php": "^8.0"
     }
 }
