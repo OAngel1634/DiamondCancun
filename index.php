@@ -1,16 +1,14 @@
 <?php
-// Backend optimizado para PHP 8.2.30 y Railway
+
 declare(strict_types=1);
 error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set('display_errors', '0');
 
-// Configuración para Railway
 $isProduction = ($_ENV['RAILWAY_ENVIRONMENT'] ?? $_ENV['NODE_ENV'] ?? 'development') === 'production';
 $isLocal = ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' || 
            ($_SERVER['SERVER_ADDR'] ?? '') === '127.0.0.1' ||
            str_contains($_SERVER['HTTP_HOST'] ?? '', '.local');
 
-// Redirección HTTPS solo en producción
 if ($isProduction && !$isLocal && 
     (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') &&
     ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'http') !== 'https') {
@@ -18,7 +16,6 @@ if ($isProduction && !$isLocal &&
     exit();
 }
 
-// Configuración segura de sesión
 session_start([
     'cookie_path' => '/',
     'cookie_secure' => $isProduction,
@@ -29,7 +26,6 @@ session_start([
     'cache_limiter' => 'nocache'
 ]);
 
-// Variables de autenticación
 $isAuthenticated = false;
 $nombreUsuario = '';
 $emailUsuario = '';
@@ -40,17 +36,15 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     $emailUsuario = htmlspecialchars($_SESSION['usuario_email'] ?? '', ENT_QUOTES, 'UTF-8');
 }
 ?>
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <!-- CSS -->
   <link rel="stylesheet" href="/css/styles.css">
   <style>
-    /* Estilos para estado autenticado/no autenticado */
+   
     .user-icon-container {
       position: relative;
     }
@@ -126,7 +120,6 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* Botones de redirección */
     .redirect-btn {
       display: inline-block;
       padding: 12px 25px;
@@ -157,7 +150,6 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
       flex-wrap: wrap;
     }
     
-    /* Estilos originales manteniendo diseño */
     .hero {
       position: relative;
       height: 80vh;
@@ -234,7 +226,6 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     }
   </style>
   
-  <!-- Font Awesome -->
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
         integrity="sha512-p1CmWvQg2cL0+9J1Nc9MvdSEZHt+6iweMn5LhI5UUl/FUWFuRFu8r9ZtOtjmCl8pq23THPCAAUeHz6D3Ym0hA==" 
@@ -247,7 +238,7 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     
     <nav aria-label="Navegación principal">
       <ul>
-        <!-- Rutas ABSOLUTAS -->
+  
         <li><a href="/html/islamujeres.php">Isla Mujeres</a></li>
         <li><a href="/html/snorkel.php">Snorkeling</a></li>
         <li><a href="/html/club.php">Club playa</a></li>
@@ -263,7 +254,7 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
           <?php if (!$isAuthenticated): ?>
-            <!-- Enlaces para usuarios no autenticados -->
+            <!-- Enlaces para usuarios no autenticados - SOLO DENTRO DEL DROPDOWN -->
             <a href="/html/inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
@@ -271,7 +262,7 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
           <?php else: ?>
-            <!-- Enlaces para usuarios autenticados -->
+           
             <div style="padding: 15px 20px; color: #f1faee; border-bottom: 1px solid rgba(255,255,255,0.1);">
               <strong><?php echo $nombreUsuario ?: 'Usuario'; ?></strong><br>
               <small><?php echo $emailUsuario ?: ''; ?></small>
@@ -284,15 +275,14 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
         </div>
       </div>
     </nav>
-
-    <!-- Notificación (opcional, puede usarse más adelante) -->
+  
     <div class="notification" id="notification">
       <i class="fas fa-info-circle"></i>
       <span id="notificationText">Mensaje de notificación</span>
     </div>
 
     <section class="hero" role="banner">
-      <!-- Rutas ABSOLUTAS -->
+      
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
         <source src="/Imagenes/Catamaran.mp4" type="video/mp4">
         Tu navegador no soporta el elemento de video.
@@ -305,7 +295,7 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
         <p class="subtitle">Somos más que un Tour</p>
         <p class="tagline">Somos una experiencia de por vida</p>
         
-        <!-- Botones de redirección directa -->
+       
         <?php if (!$isAuthenticated): ?>
           <div class="redirect-container">
             <a href="/html/inicio-sesion.php" class="redirect-btn">
@@ -369,7 +359,7 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
 
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
-        <!-- Rutas ABSOLUTAS -->
+     
         <img src="/Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
       </div>
       <div class="about-text">
@@ -382,14 +372,14 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
-        <!-- Rutas ABSOLUTAS -->
+       
         <a href="/html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
           <span class="btn-text">Saber más</span>
           <span class="btn-icon">➔</span>
         </a>
       </div>
       <div class="image">
-        <!-- Rutas ABSOLUTAS -->
+      
         <img src="/Imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
       </div>
     </section>
@@ -413,7 +403,6 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
       </div>
     </div>
     
-    <!-- Rutas ABSOLUTAS -->
     <?php 
     $footerPath = __DIR__ . '/includes/footer.php';
     if (file_exists($footerPath)) {
@@ -423,14 +412,14 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
   </div>
 
 <script>
-// Estado de autenticación solo desde PHP
+
 window.authData = {
     isAuthenticated: <?php echo $isAuthenticated ? 'true' : 'false'; ?>,
     userName: '<?php echo addslashes($nombreUsuario ?? ''); ?>',
     userEmail: '<?php echo addslashes($emailUsuario ?? ''); ?>'
 };
 
-// Código para el dropdown del usuario
+
 document.addEventListener('DOMContentLoaded', function() {
     const userIcon = document.getElementById('userIcon');
     const userDropdown = document.getElementById('userDropdown');
@@ -444,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
             userDropdown.classList.toggle('active', !isExpanded);
         });
         
-        // Cerrar dropdown al hacer clic fuera
+        
         document.addEventListener('click', function(e) {
             if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
                 userIcon.setAttribute('aria-expanded', 'false');
@@ -454,7 +443,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Actualizar hora en tiempo real
     const timeElement = document.getElementById('current-time');
     if (timeElement) {
         const updateTime = () => {
@@ -471,9 +459,41 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(updateTime, 60000);
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const userIcon = document.getElementById('userIcon');
+    const userDropdown = document.getElementById('userDropdown');
+    
+    if (userIcon && userDropdown) {
+        userIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isExpanded = userIcon.getAttribute('aria-expanded') === 'true';
+            userIcon.setAttribute('aria-expanded', !isExpanded);
+            userDropdown.setAttribute('aria-hidden', isExpanded);
+            userDropdown.classList.toggle('active', !isExpanded);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                userIcon.setAttribute('aria-expanded', 'false');
+                userDropdown.setAttribute('aria-hidden', 'true');
+                userDropdown.classList.remove('active');
+            }
+        });
+        
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && userIcon.getAttribute('aria-expanded') === 'true') {
+                userIcon.setAttribute('aria-expanded', 'false');
+                userDropdown.setAttribute('aria-hidden', 'true');
+                userDropdown.classList.remove('active');
+            }
+        });
+    }
+});
+
 </script>
 
-<!-- Rutas ABSOLUTAS -->
 <script src="/Script/index.js"></script>
  
 </body>
