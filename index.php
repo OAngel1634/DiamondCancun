@@ -323,10 +323,10 @@ if (isset($_SESSION['usuario_id'])) {
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
           <div id="guestLinks">
-            <a href="inicio-sesion.php" id="loginLink" role="button">
+            <a href="../html/inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
-            <a href="registro.php" id="registerLink" role="button">
+            <a href="../html/registro.php" id="registerLink" role="button">
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
           </div>
