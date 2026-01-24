@@ -3,7 +3,7 @@
 $db_host = getenv('MYSQLHOST') ?: 'localhost';
 $db_user = getenv('MYSQLUSER') ?: 'root';
 $db_pass = getenv('MYSQLPASSWORD') ?: ''; // Pon tu clave de local aquí si tienes
-$db_name = getenv('MYSQL_DATABASE') ?: 'diamond_bright'; // Tu BD local
+$db_name = getenv('MYSQLDATABASE') ?: 'diamond_bright'; // Tu BD local
 $db_port = getenv('MYSQLPORT') ?: 3306;
 
 // Crear conexión

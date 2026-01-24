@@ -5,11 +5,11 @@ $isAuthenticated = false;
 $nombreUsuario = '';
 $emailUsuario = '';
 
-// Verificar autenticación usando sesión PHP
+
 if (isset($_SESSION['usuario_id'])) {
     $isAuthenticated = true;
     
-    // Cargar datos del usuario si están disponibles
+    
     if (isset($_SESSION['usuario_nombre'])) {
         $nombreUsuario = $_SESSION['usuario_nombre'];
     }
@@ -26,12 +26,9 @@ if (isset($_SESSION['usuario_id'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <!-- Estilos -->
   <link rel="stylesheet" href="../css/styles.css">
   <style>
-   /* Estilos para el overlay de login */
-    /* ================= SISTEMA DE AUTENTICACIÓN MEJORADO ================= */
-    /* Estilos para el overlay de login */
+   
     .login-overlay {
       display: none;
       position: fixed;
@@ -302,7 +299,7 @@ if (isset($_SESSION['usuario_id'])) {
     }
   </style>
   
-  <!-- FontAwesome -->
+  
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
         integrity="sha512-p1CmWvQg2cL0+9J1N0c9MvdSEZHt+6iweMn5LhI5UUl/FUWFuRFu8r9ZtOtjmCl8pq23THPCAAUeHz6D3Ym0hA==" 
@@ -312,7 +309,7 @@ if (isset($_SESSION['usuario_id'])) {
 
 <body>
   <div id="content-wrapper">
-    <!-- Navegación -->
+    
     <nav aria-label="Navegación principal">
       <ul>
         <li><a href="../html/islamujeres.php">Isla Mujeres</a></li>
@@ -343,14 +340,11 @@ if (isset($_SESSION['usuario_id'])) {
       </div>
     </nav>
 
-    <!-- Notificación -->
     <div class="notification" id="notification">
       <i class="fas fa-info-circle"></i>
       <span id="notificationText">Mensaje de notificación</span>
     </div>
 
-
-    <!-- Hero Section -->
     <section class="hero" role="banner">
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
         <source src="../Imagenes/Catamaran.mp4" type="video/mp4">
@@ -366,7 +360,6 @@ if (isset($_SESSION['usuario_id'])) {
       </div>
     </section>
 
-    <!-- Galería -->
     <section class="gallery-section" aria-labelledby="gallery-heading">
       <h2 id="gallery-heading" class="section-title">Maravíllate - Inspírate - Vive el mar</h2>
       <div class="gallery">
@@ -392,7 +385,6 @@ if (isset($_SESSION['usuario_id'])) {
         </figure>
       </div>
       
-      <!-- Mapa -->
       <h2 class="section-title map-title" id="map-heading">
         <span class="first-line">Como llegar a</span>
         <span class="second-line">Nuestra sucursal</span>
@@ -407,7 +399,6 @@ if (isset($_SESSION['usuario_id'])) {
       </div>
     </section>
 
-    <!-- Sección Acerca de -->
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
         <img src="../Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
@@ -419,7 +410,6 @@ if (isset($_SESSION['usuario_id'])) {
       </div>
     </section>
 
-    <!-- Sección de Promoción -->
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
@@ -433,7 +423,6 @@ if (isset($_SESSION['usuario_id'])) {
       </div>
     </section>
 
-    <!-- Widget del clima -->
     <div class="weather" aria-label="Información del clima">
       <div class="weather-top">
         <div class="weather-left">
