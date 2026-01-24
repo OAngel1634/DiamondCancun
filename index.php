@@ -1,14 +1,24 @@
 <?php
-session_start();
+
+if ($_SERVER['HTTP_HOST'] !== 'localhost' && (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off')) {
+    header("Location: https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+    exit();
+}
+
+
+session_start([
+    'cookie_path' => '/',
+    'cookie_secure' => true,
+    'cookie_httponly' => true,
+    'cookie_samesite' => 'Lax'
+]);
 
 $isAuthenticated = false;
 $nombreUsuario = '';
 $emailUsuario = '';
 
-
 if (isset($_SESSION['usuario_id'])) {
     $isAuthenticated = true;
-    
     
     if (isset($_SESSION['usuario_nombre'])) {
         $nombreUsuario = $_SESSION['usuario_nombre'];
@@ -26,176 +36,14 @@ if (isset($_SESSION['usuario_id'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- 3. Rutas ABSOLUTAS desde raíz -->
+  <link rel="stylesheet" href="/css/styles.css">
   <style>
-   
-    .login-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.85);
-      z-index: 10000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .login-container {
-      background: linear-gradient(135deg, #0a1a2f, #1a3a5f);
-      padding: 35px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 450px;
+    /* Estilos para estado autenticado/no autenticado */
+    .user-icon-container {
       position: relative;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-    }
-
-    .close-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 28px;
-      cursor: pointer;
-      color: #f1faee;
-      background: transparent;
-      border: none;
-      transition: all 0.3s ease;
-    }
-
-    .close-btn:hover {
-      color: #d4af37;
-      transform: scale(1.1);
-    }
-
-    .form-group {
-      margin-bottom: 25px;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: 500;
-      color: #f1faee;
-      font-size: 1.1rem;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 14px 15px;
-      border-radius: 8px;
-      border: 1px solid #457b9d;
-      background: rgba(255, 255, 255, 0.1);
-      color: #f1faee;
-      font-size: 1.05rem;
-      transition: all 0.3s ease;
-    }
-
-    .form-group input:focus {
-      border-color: #d4af37;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
-    }
-
-    .password-container {
-      position: relative;
-    }
-
-    .toggle-password {
-      position: absolute;
-      right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: #a8dadc;
-      cursor: pointer;
-      font-size: 1.2rem;
-      transition: color 0.3s ease;
-    }
-
-    .toggle-password:hover {
-      color: #d4af37;
-    }
-
-    .btn-login {
-      width: 100%;
-      padding: 15px;
-      background: #d4af37;
-      color: #0a1a2f;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 1.1rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .btn-login:hover {
-      background: #c5a030;
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
-    }
-
-    .register-link {
-      text-align: center;
-      margin-top: 25px;
-      color: #a8dadc;
-      font-size: 1rem;
-    }
-
-    .register-link a {
-      color: #d4af37;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    .register-link a:hover {
-      text-decoration: underline;
-    }
-
-    /* Notificaciones */
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 25px;
-      border-radius: 8px;
-      color: white;
-      z-index: 10000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      transform: translateX(120%);
-      transition: transform 0.3s ease-in-out;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .notification.success {
-      background: #28a745;
-    }
-
-    .notification.error {
-      background: #dc3545;
-    }
-
-    .notification.info {
-      background: #17a2b8;
-    }
-
-    .notification.active {
-      transform: translateX(0);
     }
     
-    /* Icono de usuario mejorado */
     .user-icon {
       width: 40px;
       height: 40px;
@@ -297,8 +145,52 @@ if (isset($_SESSION['usuario_id'])) {
       margin-top: 30px;
       flex-wrap: wrap;
     }
+    
+    /* Estilos originales manteniendo diseño */
+    .hero {
+      position: relative;
+      height: 80vh;
+      overflow: hidden;
+    }
+    
+    .hero-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .hero-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: white;
+      z-index: 1;
+    }
+    
+    .section-title {
+      text-align: center;
+      margin: 2rem 0;
+      color: #0a1a2f;
+    }
+    
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+    
+    .gallery-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    
+    /* ELIMINADO: Todo el overlay de login - ya no se usa */
   </style>
-  
   
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
@@ -312,42 +204,48 @@ if (isset($_SESSION['usuario_id'])) {
     
     <nav aria-label="Navegación principal">
       <ul>
-        <li><a href="html/islamujeres.php">Isla Mujeres</a></li>
-        <li><a href="html/snorkel.php">Snorkeling</a></li>
-        <li><a href="html/club.php">Club playa</a></li>
+        <!-- 4. Rutas ABSOLUTAS desde raíz -->
+        <li><a href="/html/islamujeres.php">Isla Mujeres</a></li>
+        <li><a href="/html/snorkel.php">Snorkeling</a></li>
+        <li><a href="/html/club.php">Club playa</a></li>
       </ul>
       
       <div class="user-icon-container" aria-label="Acceso de usuario">
-        <div class="user-icon" id="userIcon" tabindex="0" role="button" aria-expanded="false">
+        <div class="user-icon <?php echo $isAuthenticated ? 'authenticated' : ''; ?>" 
+             id="userIcon" 
+             tabindex="0" 
+             role="button" 
+             aria-expanded="false">
           <i class="fas fa-user" aria-hidden="true"></i>
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
-          <div id="guestLinks">
-            <a href="html/inicio-sesion.php" id="loginLink" role="button">
+          <?php if (!$isAuthenticated): ?>
+            <!-- Enlaces para usuarios no autenticados - rutas ABSOLUTAS -->
+            <a href="/html/inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
-            <a href="html/registro.php" id="registerLink" role="button">
+            <a href="/html/registro.php" id="registerLink" role="button">
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
-          </div>
-          <div id="userLinks" style="display:none;">
-            <a href="dashboard.php"><i class="fas fa-user-circle" aria-hidden="true"></i> Mi perfil</a>
-            <a href="reservations.html"><i class="fas fa-calendar-check" aria-hidden="true"></i> Mis reservas</a>
-            <a href="settings.html"><i class="fas fa-cog" aria-hidden="true"></i> Configuración</a>
-            <a href="logout.php" id="logoutLink"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión</a>
-          </div>
+          <?php else: ?>
+            <!-- Enlaces para usuarios autenticados - rutas ABSOLUTAS -->
+            <div style="padding: 15px 20px; color: #f1faee; border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <strong><?php echo htmlspecialchars($nombreUsuario ?: 'Usuario'); ?></strong><br>
+              <small><?php echo htmlspecialchars($emailUsuario ?: ''); ?></small>
+            </div>
+            <a href="/dashboard.php"><i class="fas fa-user-circle" aria-hidden="true"></i> Mi perfil</a>
+            <a href="/mis-reservas.php"><i class="fas fa-calendar-check" aria-hidden="true"></i> Mis reservas</a>
+            <a href="/configuracion.php"><i class="fas fa-cog" aria-hidden="true"></i> Configuración</a>
+            <a href="/logout.php" id="logoutLink"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión</a>
+          <?php endif; ?>
         </div>
       </div>
     </nav>
 
-    <div class="notification" id="notification">
-      <i class="fas fa-info-circle"></i>
-      <span id="notificationText">Mensaje de notificación</span>
-    </div>
-
     <section class="hero" role="banner">
+      <!-- 4. Rutas ABSOLUTAS desde raíz -->
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
-        <source src="../Imagenes/Catamaran.mp4" type="video/mp4">
+        <source src="/Imagenes/Catamaran.mp4" type="video/mp4">
         Tu navegador no soporta el elemento de video.
       </video>
       <div class="hero-content">
@@ -357,6 +255,27 @@ if (isset($_SESSION['usuario_id'])) {
         </h1>
         <p class="subtitle">Somos más que un Tour</p>
         <p class="tagline">Somos una experiencia de por vida</p>
+        
+        <!-- Botones de redirección directa (no overlay) -->
+        <?php if (!$isAuthenticated): ?>
+          <div class="redirect-container">
+            <a href="/html/inicio-sesion.php" class="redirect-btn">
+              <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </a>
+            <a href="/html/registro.php" class="redirect-btn">
+              <i class="fas fa-user-plus"></i> Registrarse
+            </a>
+          </div>
+        <?php else: ?>
+          <div class="redirect-container">
+            <a href="/dashboard.php" class="redirect-btn">
+              <i class="fas fa-user-circle"></i> Ir a mi perfil
+            </a>
+            <a href="/html/Reserva.php" class="redirect-btn">
+              <i class="fas fa-calendar-plus"></i> Hacer reserva
+            </a>
+          </div>
+        <?php endif; ?>
       </div>
     </section>
 
@@ -401,7 +320,8 @@ if (isset($_SESSION['usuario_id'])) {
 
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
-        <img src="Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
+        <!-- 4. Rutas ABSOLUTAS desde raíz -->
+        <img src="/Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
       </div>
       <div class="about-text">
         <h2 id="about-heading">Acerca de nosotros</h2>
@@ -413,13 +333,15 @@ if (isset($_SESSION['usuario_id'])) {
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
-       <a href="html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
-  <span class="btn-text">Saber más</span>
-  <span class="btn-icon">➔</span>
-</a>
+        <!-- 4. Rutas ABSOLUTAS desde raíz -->
+        <a href="/html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
+          <span class="btn-text">Saber más</span>
+          <span class="btn-icon">➔</span>
+        </a>
       </div>
       <div class="image">
-        <img src="../Imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
+        <!-- 4. Rutas ABSOLUTAS desde raíz -->
+        <img src="/Imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
       </div>
     </section>
 
@@ -442,17 +364,46 @@ if (isset($_SESSION['usuario_id'])) {
       </div>
     </div>
     
-    <?php include('../includes/footer.php'); ?>
+    <!-- 4. Rutas ABSOLUTAS desde raíz -->
+    <?php include(__DIR__ . '/includes/footer.php'); ?>
   </div>
 
 <script>
+// 5. Estado de autenticación solo desde PHP
 window.authData = {
     isAuthenticated: <?php echo $isAuthenticated ? 'true' : 'false'; ?>,
-    userName: '<?php echo $nombreUsuario ?? ''; ?>',
-    userEmail: '<?php echo $emailUsuario ?? ''; ?>'
+    userName: '<?php echo addslashes($nombreUsuario ?? ''); ?>',
+    userEmail: '<?php echo addslashes($emailUsuario ?? ''); ?>'
 };
+
+// Código para el dropdown del usuario
+document.addEventListener('DOMContentLoaded', function() {
+    const userIcon = document.getElementById('userIcon');
+    const userDropdown = document.getElementById('userDropdown');
+    
+    if (userIcon && userDropdown) {
+        userIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isExpanded = userIcon.getAttribute('aria-expanded') === 'true';
+            userIcon.setAttribute('aria-expanded', !isExpanded);
+            userDropdown.setAttribute('aria-hidden', isExpanded);
+            userDropdown.classList.toggle('active', !isExpanded);
+        });
+        
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                userIcon.setAttribute('aria-expanded', 'false');
+                userDropdown.setAttribute('aria-hidden', 'true');
+                userDropdown.classList.remove('active');
+            }
+        });
+    }
+});
 </script>
- <script src="../Script/index.js"></script>
+
+<!-- 4. Rutas ABSOLUTAS desde raíz -->
+<script src="/Script/index.js"></script>
  
 </body>
 </html>
