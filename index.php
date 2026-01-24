@@ -26,7 +26,7 @@ if (isset($_SESSION['usuario_id'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="css/styles.css">
   <style>
    
     .login-overlay {
@@ -312,9 +312,9 @@ if (isset($_SESSION['usuario_id'])) {
     
     <nav aria-label="Navegación principal">
       <ul>
-        <li><a href="../html/islamujeres.php">Isla Mujeres</a></li>
-        <li><a href="../html/snorkel.php">Snorkeling</a></li>
-        <li><a href="../html/club.php">Club playa</a></li>
+        <li><a href="html/islamujeres.php">Isla Mujeres</a></li>
+        <li><a href="html/snorkel.php">Snorkeling</a></li>
+        <li><a href="html/club.php">Club playa</a></li>
       </ul>
       
       <div class="user-icon-container" aria-label="Acceso de usuario">
@@ -323,10 +323,10 @@ if (isset($_SESSION['usuario_id'])) {
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
           <div id="guestLinks">
-            <a href="../html/inicio-sesion.php" id="loginLink" role="button">
+            <a href="html/inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
-            <a href="../html/registro.php" id="registerLink" role="button">
+            <a href="html/registro.php" id="registerLink" role="button">
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
           </div>
@@ -401,7 +401,7 @@ if (isset($_SESSION['usuario_id'])) {
 
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
-        <img src="../Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
+        <img src="Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
       </div>
       <div class="about-text">
         <h2 id="about-heading">Acerca de nosotros</h2>
@@ -413,7 +413,7 @@ if (isset($_SESSION['usuario_id'])) {
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
-       <a href="../html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
+       <a href="html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
   <span class="btn-text">Saber más</span>
   <span class="btn-icon">➔</span>
 </a>
@@ -452,7 +452,7 @@ window.authData = {
     userEmail: '<?php echo $emailUsuario ?? ''; ?>'
 };
 </script>
- <script src="../Script/index.js"></script>
+ <script src="Script/index.js"></script>
  
 </body>
 </html>
