@@ -413,7 +413,7 @@ if (isset($_SESSION['usuario_id'])) {
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
-       <a href="Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
+       <a href="../html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
   <span class="btn-text">Saber más</span>
   <span class="btn-icon">➔</span>
 </a>
