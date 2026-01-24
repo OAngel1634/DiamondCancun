@@ -452,7 +452,7 @@ window.authData = {
     userEmail: '<?php echo $emailUsuario ?? ''; ?>'
 };
 </script>
- <script src="Script/index.js"></script>
+ <script src="../Script/index.js"></script>
  
 </body>
 </html>

@@ -1,19 +1,21 @@
 <?php
-
-session_start([
-    'cookie_secure' => false,
-    'cookie_httponly' => false,
-    'cookie_samesite' => 'Lax'
-]);
-
+// 1. HTTPS redirect PRIMERO
 if ($_SERVER['HTTP_HOST'] !== 'localhost' && (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off')) {
     $redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     header("Location: $redirectUrl");
     exit();
 }
 
+// 2. Session_start DESPUÉS
+session_start([
+    'cookie_secure' => false,
+    'cookie_httponly' => false,
+    'cookie_samesite' => 'Lax'
+]);
+
 if (isset($_SESSION['usuario_id'])) {
-    header("Location: dashboard.php");
+    // 3. Ruta ABSOLUTA para dashboard
+    header("Location: /../html/dashboard.php");
     exit();
 }
 
@@ -22,7 +24,8 @@ ini_set('display_errors', 1);
 
 // Procesar login normal (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once '../includes/conexion.php';
+    // 4. Ruta CORRECTA para conexión (relativa a este archivo)
+    require_once __DIR__ . '/../includes/conexion.php';
 
     $email = trim($_POST['email']);
     $password = $_POST['password'];
@@ -41,14 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['usuario_email'] = $usuario['email'];
             $_SESSION['usuario_nombre'] = $usuario['nombre'];
 
-            header("Location: dashboard.php");
+            // 5. Ruta ABSOLUTA
+            header("Location: /dashboard.php");
             exit();
         }
     }
 
     $error = "Credenciales inválidas";
 }
-
 ?>
 
 <!DOCTYPE html>
