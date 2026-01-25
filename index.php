@@ -1,3 +1,4 @@
+
 <?php
 
 declare(strict_types=1);
@@ -41,18 +42,15 @@ $host = $_SERVER['HTTP_HOST'];
 $base_url = $protocol . "://" . $host;
 
 ?>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <link rel="stylesheet" href="<?php echo $base_url; ?>/css/styles.css">
-<link rel="stylesheet" 
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-      integrity="sha512-p1CmWvQg2cL0+9J1Nc9MvdSEZHt+6iweMn5LhI5UUl/FUWFuRFu8r9ZtOtjmCl8pq23THPCAAUeHz6D3Ym0hA==" 
-      crossorigin="anonymous" 
-      referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="css/styles.css?v=<?php echo time(); ?>">
+
 </head>
 
 <body>

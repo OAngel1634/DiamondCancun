@@ -1,9 +1,350 @@
-/* test.css - Archivo de prueba */
-body {
-  background-color: red !important;
+/* ============================================= */
+/* Estilos específicos del index.php             */
+/* ============================================= */
+
+/* User Icon & Dropdown Styles */
+.user-icon-container {
+  position: relative;
 }
 
-h1 {
-  color: blue !important;
-  border: 3px solid green !important;
+.user-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.user-icon:hover {
+  background: rgba(212, 175, 55, 0.2);
+  transform: scale(1.05);
+}
+
+.user-icon.authenticated {
+  background: rgba(212, 175, 55, 0.3);
+  color: #0a1a2f;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: rgba(10, 26, 47, 0.95);
+  border-radius: 8px;
+  width: 250px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  overflow: hidden;
+  display: none;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.user-dropdown.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+.user-dropdown a {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  color: #f1faee;
+  text-decoration: none;
+  gap: 12px;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-dropdown a:hover {
+  background: rgba(212, 175, 55, 0.15);
+  padding-left: 25px;
+}
+
+.user-dropdown a i {
+  width: 20px;
+  text-align: center;
+  color: #d4af37;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Redirect Buttons */
+.redirect-btn {
+  display: inline-block;
+  padding: 12px 25px;
+  background: #d4af37;
+  color: #0a1a2f;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  margin: 10px;
+  min-width: 180px;
+}
+
+.redirect-btn:hover {
+  background: #c5a030;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+}
+
+.redirect-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+/* Hero Section for index */
+.hero {
+  position: relative;
+  height: 80vh;
+  overflow: hidden;
+}
+
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  z-index: 1;
+}
+
+.section-title {
+  text-align: center;
+  margin: 2rem 0;
+  color: #0a1a2f;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Notifications */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateX(120%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notification.success {
+  background: #28a745;
+}
+
+.notification.error {
+  background: #dc3545;
+}
+
+.notification.info {
+  background: #17a2b8;
+}
+
+.notification.active {
+  transform: translateX(0);
+}
+
+/* Map Section */
+.map-title {
+  text-align: center;
+  line-height: 1.4;
+  margin: 40px 0 20px;
+}
+
+.map-title .first-line {
+  display: block;
+  font-size: 1.8rem;
+  color: #0a1a2f;
+}
+
+.map-title .second-line {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #d4af37;
+}
+
+.map-container {
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  margin: 0 auto 40px;
+  border: 3px solid #3498db;
+  max-width: 1200px;
+}
+
+.map-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Weather Widget */
+.weather {
+  background: #1C2526;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 40px auto;
+  max-width: 500px;
+  border-bottom: 2px solid #ffb600;
+  color: white;
+}
+
+.weather-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.weather-left {
+  display: flex;
+  align-items: center;
+}
+
+.weather-icon {
+  font-size: 1.5rem;
+  margin-right: 10px;
+  color: #ffb600;
+}
+
+.weather-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-temp {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.weather-desc {
+  font-size: 1rem;
+  text-transform: capitalize;
+}
+
+.weather-detail {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  opacity: 0.8;
+}
+
+.weather-time {
+  text-align: right;
+}
+
+.weather-time>div:first-child {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.weather-time>div:last-child {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+/* ============================================= */
+/* Responsive Design                             */
+/* ============================================= */
+@media (max-width: 768px) {
+  .user-dropdown {
+    width: 200px;
+    right: -20px;
+  }
+  
+  .hero {
+    height: 60vh;
+  }
+  
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  
+  .redirect-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .redirect-btn {
+    min-width: 150px;
+  }
+  
+  .map-title .first-line {
+    font-size: 1.5rem;
+  }
+  
+  .map-title .second-line {
+    font-size: 1.8rem;
+  }
+  
+  .weather {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-dropdown {
+    width: 180px;
+  }
+  
+  .hero {
+    height: 50vh;
+  }
+  
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+  
+  .notification {
+    left: 10px;
+    right: 10px;
+    width: calc(100% - 20px);
+  }
 }
