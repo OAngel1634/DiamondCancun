@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set('display_errors', '0');
@@ -35,7 +36,6 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     $emailUsuario = htmlspecialchars($_SESSION['usuario_email'] ?? '', ENT_QUOTES, 'UTF-8');
 }
 ?>
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -43,289 +43,19 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
   <title>Inicio – DiamondPrueba</title>
   
   <link rel="stylesheet" href="/css/styles.css">
-  <style>
-   
-    nav[aria-label="Navegación principal"] {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 30px;
-      background: rgba(10, 26, 47, 0.95);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-    }
-    
-    nav[aria-label="Navegación principal"] ul {
-      display: flex;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      gap: 30px;
-    }
-    
-    nav[aria-label="Navegación principal"] ul li a {
-      color: #f1faee;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 1.1rem;
-      padding: 8px 15px;
-      border-radius: 6px;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-    
-    nav[aria-label="Navegación principal"] ul li a:hover {
-      background: rgba(212, 175, 55, 0.15);
-      color: #d4af37;
-    }
-    
-    nav[aria-label="Navegación principal"] ul li a::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      left: 50%;
-      width: 0;
-      height: 2px;
-      background: #d4af37;
-      transition: all 0.3s ease;
-      transform: translateX(-50%);
-    }
-    
-    nav[aria-label="Navegación principal"] ul li a:hover::after {
-      width: 80%;
-    }
-    
-    .user-icon-container {
-      position: relative;
-      margin-left: auto;
-    }
-    
-    .user-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      border: 1px solid rgba(212, 175, 55, 0.3);
-    }
-    
-    .user-icon i {
-      font-size: 18px;
-      color: #f1faee;
-    }
-    
-    .user-icon:hover {
-      background: rgba(212, 175, 55, 0.2);
-      transform: scale(1.05);
-    }
-    
-    .user-icon.authenticated {
-      background: rgba(212, 175, 55, 0.3);
-      color: #0a1a2f;
-    }
-    
-    .user-icon.authenticated i {
-      color: #0a1a2f;
-    }
-    
-    .user-dropdown {
-      position: absolute;
-      top: 50px;
-      right: 0;
-      background: rgba(10, 26, 47, 0.98);
-      border-radius: 8px;
-      width: 250px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(212, 175, 55, 0.2);
-      overflow: hidden;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
-      backdrop-filter: blur(10px);
-      z-index: 1001;
-    }
-    
-    .user-dropdown.active {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-    
-    .user-dropdown a {
-      display: flex;
-      align-items: center;
-      padding: 15px 20px;
-      color: #f1faee;
-      text-decoration: none;
-      gap: 12px;
-      transition: all 0.3s ease;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      background: none;
-      border: none;
-      width: 100%;
-      text-align: left;
-      font-family: inherit;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    
-    .user-dropdown a:hover {
-      background: rgba(212, 175, 55, 0.15);
-      padding-left: 25px;
-    }
-    
-    .user-dropdown a i {
-      width: 20px;
-      text-align: center;
-      color: #d4af37;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-   
-    .redirect-btn {
-      display: inline-block;
-      padding: 12px 25px;
-      background: #d4af37;
-      color: #0a1a2f;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-      margin: 10px;
-      min-width: 180px;
-    }
-    
-    .redirect-btn:hover {
-      background: #c5a030;
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
-    }
-    
-    .redirect-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 30px;
-      flex-wrap: wrap;
-    }
-    
-    .hero {
-      position: relative;
-      height: 80vh;
-      overflow: hidden;
-    }
-    
-    .hero-video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    
-    .hero-content {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      color: white;
-      z-index: 1;
-    }
-    
-    .section-title {
-      text-align: center;
-      margin: 2rem 0;
-      color: #0a1a2f;
-    }
-    
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
-    }
-    
-    .gallery-item img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-    
-   
-    @media (max-width: 768px) {
-      nav[aria-label="Navegación principal"] {
-        flex-direction: column;
-        padding: 15px;
-        gap: 15px;
-      }
-      
-      nav[aria-label="Navegación principal"] ul {
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        width: 100%;
-      }
-      
-      nav[aria-label="Navegación principal"] ul li {
-        width: 100%;
-        text-align: center;
-      }
-      
-      .user-icon-container {
-        margin: 0;
-      }
-      
-      .user-dropdown {
-        position: fixed;
-        top: auto;
-        bottom: 0;
-        right: 0;
-        left: 0;
-        width: 100%;
-        border-radius: 16px 16px 0 0;
-      }
-      
-      .redirect-container {
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      .redirect-btn {
-        width: 100%;
-        max-width: 300px;
-      }
-    }
-  </style>
-  
-  <link rel="stylesheet" 
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-        integrity="sha512-p1CmWvQg2cL0+9J1Nc9MvdSEZHt+6iweMn5LhI5UUl/FUWFuRFu8r9ZtOtjmCl8pq23THPCAAUeHz6D3Ym0hA==" 
-        crossorigin="anonymous" 
-        referrerpolicy="no-referrer" />
+<link rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+      integrity="sha512-p1CmWvQg2cL0+9J1Nc9MvdSEZHt+6iweMn5LhI5UUl/FUWFuRFu8r9ZtOtjmCl8pq23THPCAAUeHz6D3Ym0hA==" 
+      crossorigin="anonymous" 
+      referrerpolicy="no-referrer" />
 </head>
 
 <body>
   <div id="content-wrapper">
     
-   
     <nav aria-label="Navegación principal">
       <ul>
+  
         <li><a href="/html/islamujeres.php">Isla Mujeres</a></li>
         <li><a href="/html/snorkel.php">Snorkeling</a></li>
         <li><a href="/html/club.php">Club playa</a></li>
@@ -341,29 +71,35 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
           <?php if (!$isAuthenticated): ?>
-           
-            <a href="/html/inicio-sesion.php" id="loginLink" role="menuitem">
+            <!-- Enlaces para usuarios no autenticados - SOLO DENTRO DEL DROPDOWN -->
+            <a href="/html/inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
-            <a href="/html/registro.php" id="registerLink" role="menuitem">
+            <a href="/html/registro.php" id="registerLink" role="button">
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
           <?php else: ?>
            
-            <div role="presentation" style="padding: 15px 20px; color: #f1faee; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div style="padding: 15px 20px; color: #f1faee; border-bottom: 1px solid rgba(255,255,255,0.1);">
               <strong><?php echo $nombreUsuario ?: 'Usuario'; ?></strong><br>
               <small><?php echo $emailUsuario ?: ''; ?></small>
             </div>
-            <a href="/dashboard.php" role="menuitem"><i class="fas fa-user-circle" aria-hidden="true"></i> Mi perfil</a>
-            <a href="/mis-reservas.php" role="menuitem"><i class="fas fa-calendar-check" aria-hidden="true"></i> Mis reservas</a>
-            <a href="/configuracion.php" role="menuitem"><i class="fas fa-cog" aria-hidden="true"></i> Configuración</a>
-            <a href="/logout.php" id="logoutLink" role="menuitem"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión</a>
+            <a href="/dashboard.php"><i class="fas fa-user-circle" aria-hidden="true"></i> Mi perfil</a>
+            <a href="/mis-reservas.php"><i class="fas fa-calendar-check" aria-hidden="true"></i> Mis reservas</a>
+            <a href="/configuracion.php"><i class="fas fa-cog" aria-hidden="true"></i> Configuración</a>
+            <a href="/logout.php" id="logoutLink"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión</a>
           <?php endif; ?>
         </div>
       </div>
     </nav>
+  
+    <div class="notification" id="notification">
+      <i class="fas fa-info-circle"></i>
+      <span id="notificationText">Mensaje de notificación</span>
+    </div>
 
     <section class="hero" role="banner">
+      
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
         <source src="/Imagenes/Catamaran.mp4" type="video/mp4">
         Tu navegador no soporta el elemento de video.
@@ -376,8 +112,17 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
         <p class="subtitle">Somos más que un Tour</p>
         <p class="tagline">Somos una experiencia de por vida</p>
         
-      
-        <?php if ($isAuthenticated): ?>
+       
+        <?php if (!$isAuthenticated): ?>
+          <div class="redirect-container">
+            <a href="/html/inicio-sesion.php" class="redirect-btn">
+              <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </a>
+            <a href="/html/registro.php" class="redirect-btn">
+              <i class="fas fa-user-plus"></i> Registrarse
+            </a>
+          </div>
+        <?php else: ?>
           <div class="redirect-container">
             <a href="/dashboard.php" class="redirect-btn">
               <i class="fas fa-user-circle"></i> Ir a mi perfil
@@ -431,6 +176,7 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
 
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
+     
         <img src="/Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
       </div>
       <div class="about-text">
@@ -443,12 +189,14 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
+       
         <a href="/html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
           <span class="btn-text">Saber más</span>
           <span class="btn-icon">➔</span>
         </a>
       </div>
       <div class="image">
+      
         <img src="/Imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
       </div>
     </section>
@@ -494,20 +242,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const userDropdown = document.getElementById('userDropdown');
     
     if (userIcon && userDropdown) {
-        // Toggle del dropdown
         userIcon.addEventListener('click', function(e) {
             e.stopPropagation();
             const isExpanded = userIcon.getAttribute('aria-expanded') === 'true';
             userIcon.setAttribute('aria-expanded', !isExpanded);
             userDropdown.setAttribute('aria-hidden', isExpanded);
             userDropdown.classList.toggle('active', !isExpanded);
-            
-            
-            if (!isExpanded) {
-                const firstLink = userDropdown.querySelector('a, button');
-                if (firstLink) firstLink.focus();
-            }
         });
+        
         
         document.addEventListener('click', function(e) {
             if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
@@ -515,31 +257,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 userDropdown.setAttribute('aria-hidden', 'true');
                 userDropdown.classList.remove('active');
             }
-        });
-        
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && userIcon.getAttribute('aria-expanded') === 'true') {
-                userIcon.setAttribute('aria-expanded', 'false');
-                userDropdown.setAttribute('aria-hidden', 'true');
-                userDropdown.classList.remove('active');
-                userIcon.focus();
-            }
-        });
-        
-       
-        const dropdownItems = userDropdown.querySelectorAll('a, button');
-        dropdownItems.forEach((item, index) => {
-            item.addEventListener('keydown', function(e) {
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    const nextIndex = Math.min(index + 1, dropdownItems.length - 1);
-                    dropdownItems[nextIndex].focus();
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    const prevIndex = Math.max(index - 1, 0);
-                    dropdownItems[prevIndex].focus();
-                }
-            });
         });
     }
     
@@ -559,9 +276,42 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(updateTime, 60000);
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const userIcon = document.getElementById('userIcon');
+    const userDropdown = document.getElementById('userDropdown');
+    
+    if (userIcon && userDropdown) {
+        userIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isExpanded = userIcon.getAttribute('aria-expanded') === 'true';
+            userIcon.setAttribute('aria-expanded', !isExpanded);
+            userDropdown.setAttribute('aria-hidden', isExpanded);
+            userDropdown.classList.toggle('active', !isExpanded);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                userIcon.setAttribute('aria-expanded', 'false');
+                userDropdown.setAttribute('aria-hidden', 'true');
+                userDropdown.classList.remove('active');
+            }
+        });
+        
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && userIcon.getAttribute('aria-expanded') === 'true') {
+                userIcon.setAttribute('aria-expanded', 'false');
+                userDropdown.setAttribute('aria-hidden', 'true');
+                userDropdown.classList.remove('active');
+            }
+        });
+    }
+});
+
 </script>
 
-<script src="/Script/index.js" defer></script>
+<script src="/Script/index.js"></script>
  
 </body>
 </html>
