@@ -189,7 +189,7 @@ header("Pragma: no-cache");
         <!-- HERO SECTION -->
         <section class="hero" role="banner">
             <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
-                <source src="<?php echo $assetsBase; ?>/public/assets/imagenes/Catamaran.mp4" type="video/mp4">
+                <source src="<?php echo $assetsBase; ?>imagenes/Catamaran.mp4" type="video/mp4">
                 Tu navegador no soporta el elemento de video.
             </video>
             <div class="hero-content">
@@ -268,7 +268,7 @@ header("Pragma: no-cache");
         <!-- ACERCA DE -->
         <section class="about" aria-labelledby="about-heading">
             <div class="about-image">
-                <img src="<?php echo $assetsBase; ?>/public/assets/imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
+                <img src="<?php echo $assetsBase; ?>imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
             </div>
             <div class="about-text">
                 <h2 id="about-heading">Acerca de nosotros</h2>
@@ -287,7 +287,7 @@ header("Pragma: no-cache");
                 </a>
             </div>
             <div class="image">
-                <img src="<?php echo $assetsBase; ?>/public/assets/imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
+                <img src="<?php echo $assetsBase; ?>imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
             </div>
         </section>
 
