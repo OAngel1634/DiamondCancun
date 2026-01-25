@@ -275,7 +275,7 @@ header("Pragma: no-cache");
 </body>
 
 <?php
-// En index.php, justo después de <body>
+
 $cssUrl = '/css/styles.css';
 $fullUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . 
            $_SERVER['HTTP_HOST'] . $cssUrl;
@@ -285,7 +285,6 @@ $fullUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' .
 console.log('CSS URL:', '<?php echo $cssUrl; ?>');
 console.log('CSS Full URL:', '<?php echo $fullUrl; ?>');
 
-// Probar cargar CSS dinámicamente
 fetch('<?php echo $cssUrl; ?>')
     .then(response => {
         console.log('CSS Status:', response.status);
