@@ -1,1204 +1,495 @@
 <?php
+declare(strict_types=1);
+error_reporting(E_ALL & ~E_DEPRECATED);
+ini_set('display_errors', '0');
 
-session_start();
+// Detección de entorno (consistente con login/registro)
+$isProduction = ($_ENV['RAILWAY_ENVIRONMENT'] ?? $_ENV['NODE_ENV'] ?? 'development') === 'production';
+$isLocal = ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' || 
+           ($_SERVER['SERVER_ADDR'] ?? '') === '127.0.0.1' ||
+           str_contains($_SERVER['HTTP_HOST'] ?? '', '.local');
 
-error_log("Accediendo a dashboard.php. ID de sesión: " . session_id());
-
-error_log("Usuario ID en sesión: " . ($_SESSION['usuario_id'] ?? 'No definido'));
-
-
-
-if (!isset($_SESSION['usuario_id'])) {
-
-    error_log("Redirigiendo a inicio-sesion.php desde dashboard.php");
-
-    header("Location: inicio-sesion.php");
-
+// Redirección HTTPS en producción
+if ($isProduction && !$isLocal && 
+    (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') &&
+    ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'http') !== 'https') {
+    $redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    header("Location: $redirectUrl");
     exit();
-
 }
 
+// Configuración segura de sesiones (consistente con login/registro)
+session_start([
+    'cookie_path' => '/',
+    'cookie_secure' => $isProduction,
+    'cookie_httponly' => true,
+    'cookie_samesite' => 'Lax',
+    'use_strict_mode' => true,
+    'use_only_cookies' => true,
+    'cache_limiter' => 'nocache'
+]);
 
+// Headers de seguridad adicionales
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
-// Obtener información del usuario
+// Logging de acceso (solo en desarrollo)
+if (!$isProduction) {
+    error_log("Accediendo a dashboard.php. ID de sesión: " . session_id());
+    error_log("Usuario ID en sesión: " . ($_SESSION['usuario_id'] ?? 'No definido'));
+}
 
-require_once 'Usuario.php';
+// Verificar autenticación
+if (!isset($_SESSION['usuario_id']) || !is_numeric($_SESSION['usuario_id'])) {
+    if (!$isProduction) {
+        error_log("Redirigiendo a inicio-sesion.php desde dashboard.php - Sesión inválida");
+    }
+    header("Location: /html/inicio-sesion.php");
+    exit();
+}
 
-require_once 'conexion.php';
-
-
-
-$usuario = new Usuario();
-
-if (!$usuario->buscarPorId($_SESSION['usuario_id'])) {
-
+// Verificar tiempo de sesión (24 horas máximo)
+$sessionTimeout = 86400; // 24 horas
+if (isset($_SESSION['login_time']) && (time() - $_SESSION['login_time']) > $sessionTimeout) {
     session_destroy();
-
-    header("Location: inicio-sesion.php");
-
+    header("Location: /html/inicio-sesion.php?expired=1");
     exit();
-
 }
 
+// Verificar token CSRF (si existe en sesión)
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-
-// Conectar a la base de datos
-
-$database = new Database();
-
-$pdo = $database->connect();
-
-
-
-// Obtener estadísticas del usuario
-
+// Inicializar variables
+$nombreUsuario = '';
+$emailUsuario = '';
+$inicialAvatar = '';
 $reservasActivas = 0;
-
 $valoracionPromedio = 0;
-
 $viajesRealizados = 0;
-
-$cuponesDisponibles = 0; // Inicializado en 0
-
-
-
-// Consulta para reservas activas
-
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM reservas 
-
-                      WHERE usuario_id = ? AND estado IN ('pendiente', 'confirmada')");
-
-$stmt->execute([$_SESSION['usuario_id']]);
-
-$reservasActivas = $stmt->fetchColumn();
-
-
-
-// Consulta para valoración promedio
-
-$stmt = $pdo->prepare("SELECT AVG(calificacion) FROM opiniones WHERE usuario_id = ?");
-
-$stmt->execute([$_SESSION['usuario_id']]);
-
-$valoracionPromedio = $stmt->fetchColumn();
-
-$valoracionPromedio = $valoracionPromedio ? number_format($valoracionPromedio, 1) : '0.0';
-
-
-
-// Consulta para viajes realizados
-
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM reservas 
-
-                      WHERE usuario_id = ? AND estado = 'completada'");
-
-$stmt->execute([$_SESSION['usuario_id']]);
-
-$viajesRealizados = $stmt->fetchColumn();
-
-
-
-// Consulta para cupones disponibles (asumiendo que existe tabla 'cupones')
+$cuponesDisponibles = 0;
 
 try {
-
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM cupones 
-
-                          WHERE usuario_id = ? AND usado = 0");
-
+    // Obtener información del usuario
+    require_once __DIR__ . '/Usuario.php';
+    require_once __DIR__ . '/conexion.php';
+    
+    $usuario = new Usuario();
+    $usuarioData = $usuario->buscarPorId((int)$_SESSION['usuario_id']);
+    
+    if (!$usuarioData) {
+        throw new Exception("Usuario no encontrado");
+    }
+    
+    // Verificar que el usuario esté activo
+    if (isset($usuario->activo) && $usuario->activo != 1) {
+        session_destroy();
+        header("Location: /html/inicio-sesion.php?inactive=1");
+        exit();
+    }
+    
+    // Obtener datos del usuario
+    $nombreUsuario = htmlspecialchars($usuario->nombre ?? '', ENT_QUOTES, 'UTF-8');
+    $emailUsuario = htmlspecialchars($usuario->email ?? '', ENT_QUOTES, 'UTF-8');
+    $inicialAvatar = !empty($nombreUsuario) ? strtoupper(substr($nombreUsuario, 0, 1)) : 'U';
+    
+    // Conectar a la base de datos
+    $database = new Database();
+    $pdo = $database->connect();
+    
+    // Obtener estadísticas del usuario con prepared statements
+    // Reservas activas
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM reservas 
+                          WHERE usuario_id = ? AND estado IN ('pendiente', 'confirmada', 'procesando')");
     $stmt->execute([$_SESSION['usuario_id']]);
-
-    $cuponesDisponibles = $stmt->fetchColumn();
-
-} catch (PDOException $e) {
-
-    error_log("Error en cupones: " . $e->getMessage());
-
-    $cuponesDisponibles = 0;
-
+    $reservasActivas = (int)$stmt->fetchColumn();
+    
+    // Valoración promedio
+    $stmt = $pdo->prepare("SELECT AVG(calificacion) FROM opiniones WHERE usuario_id = ?");
+    $stmt->execute([$_SESSION['usuario_id']]);
+    $valoracionPromedio = $stmt->fetchColumn();
+    $valoracionPromedio = $valoracionPromedio ? number_format((float)$valoracionPromedio, 1) : '0.0';
+    
+    // Viajes realizados
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM reservas 
+                          WHERE usuario_id = ? AND estado = 'completada'");
+    $stmt->execute([$_SESSION['usuario_id']]);
+    $viajesRealizados = (int)$stmt->fetchColumn();
+    
+    // Cupones disponibles (con manejo de tabla inexistente)
+    try {
+        // Verificar si la tabla existe
+        $stmt = $pdo->prepare("SHOW TABLES LIKE 'cupones'");
+        $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM cupones 
+                                  WHERE usuario_id = ? AND usado = 0 AND fecha_expiracion > NOW()");
+            $stmt->execute([$_SESSION['usuario_id']]);
+            $cuponesDisponibles = (int)$stmt->fetchColumn();
+        }
+    } catch (PDOException $e) {
+        // Silenciar error de tabla no existente
+        if (!$isProduction) {
+            error_log("Tabla cupones no existe o error: " . $e->getMessage());
+        }
+        $cuponesDisponibles = 0;
+    }
+    
+    // Actualizar último acceso
+    if ($isProduction) {
+        $updateStmt = $pdo->prepare("UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?");
+        $updateStmt->execute([$_SESSION['usuario_id']]);
+    }
+    
+} catch (Exception $e) {
+    error_log("Error en dashboard: " . $e->getMessage());
+    if (!$isProduction) {
+        die("Error del sistema: " . htmlspecialchars($e->getMessage()));
+    } else {
+        die("Error del sistema. Por favor, intente más tarde.");
+    }
 }
-
-
-
-// Obtener datos del usuario
-
-$nombreUsuario = htmlspecialchars($usuario->nombre);
-
-$emailUsuario = htmlspecialchars($usuario->email);
-
-$inicialAvatar = strtoupper(substr($nombreUsuario, 0, 1));
-
 ?>
 
-
-
 <!DOCTYPE html>
-
-<html lang="es">
-
+<html lang="es" data-theme="light">
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Panel de Usuario - Diamond Bright</title>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-    <style>
-
-        :root {
-
-            --primary: #003366;
-
-            --secondary: #0099cc;
-
-            --accent: #D4AF37;
-
-            --light-bg: #f0f8ff;
-
-            --white: #ffffff;
-
-            --light-gray: #e0e0e0;
-
-            --text-dark: #333333;
-
-            --text-light: #666666;
-
-            --shadow: 0 8px 20px rgba(0, 51, 102, 0.15);
-
-            --transition: all 0.3s ease;
-
-            --border-radius: 10px;
-
-            --success: #28a745;
-
-            --warning: #ffc107;
-
-            --danger: #dc3545;
-
-        }
-
-
-
-        * {
-
-            box-sizing: border-box;
-
-            margin: 0;
-
-            padding: 0;
-
-        }
-
-
-
-        body {
-
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-            background: linear-gradient(135deg, var(--light-bg) 0%, rgba(0,153,204,0.1) 100%);
-
-            color: var(--text-dark);
-
-            min-height: 100vh;
-
-            padding: 20px;
-
-            line-height: 1.6;
-
-        }
-
-
-
-        .container {
-
-            display: flex;
-
-            max-width: 1200px;
-
-            margin: 0 auto;
-
-            gap: 20px;
-
-            flex-direction: column;
-
-        }
-
-
-
-        /* Header Styles */
-
-        .profile-header {
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            padding: 20px;
-
-            background: white;
-
-            border-radius: var(--border-radius);
-
-            box-shadow: var(--shadow);
-
-            margin-bottom: 20px;
-
-            gap: 15px;
-
-        }
-
-
-
-        .welcome-section h1 {
-
-            font-size: 24px;
-
-            color: var(--primary);
-
-            margin-bottom: 5px;
-
-        }
-
-
-
-        .welcome-section p {
-
-            color: var(--text-light);
-
-            font-size: 16px;
-
-        }
-
-
-
-        .btn {
-
-            padding: 10px 20px;
-
-            border-radius: 5px;
-
-            font-weight: 600;
-
-            cursor: pointer;
-
-            transition: var(--transition);
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            border: none;
-
-            text-decoration: none;
-
-            font-size: 15px;
-
-        }
-
-
-
-        .btn-primary {
-
-            background: var(--primary);
-
-            color: white;
-
-        }
-
-
-
-        .btn-primary:hover {
-
-            background: #002244;
-
-            transform: translateY(-2px);
-
-            box-shadow: 0 5px 15px rgba(0, 51, 102, 0.3);
-
-        }
-
-
-
-        /* Main Content Layout */
-
-        .content-wrapper {
-
-            display: flex;
-
-            gap: 20px;
-
-            flex-direction: column;
-
-        }
-
-
-
-        @media (min-width: 900px) {
-
-            .content-wrapper {
-
-                flex-direction: row;
-
-            }
-
-        }
-
-
-
-        /* Sidebar Styles */
-
-        .sidebar {
-
-            width: 100%;
-
-            background: white;
-
-            border-radius: var(--border-radius);
-
-            box-shadow: var(--shadow);
-
-            padding: 20px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            position: sticky;
-
-            top: 20px;
-
-            height: fit-content;
-
-        }
-
-
-
-        @media (min-width: 900px) {
-
-            .sidebar {
-
-                width: 280px;
-
-                flex-shrink: 0;
-
-            }
-
-        }
-
-
-
-        .user-card {
-
-            text-align: center;
-
-            padding: 20px 0;
-
-            margin-bottom: 20px;
-
-            border-bottom: 1px solid var(--light-gray);
-
-        }
-
-
-
-        .avatar {
-
-            width: 80px;
-
-            height: 80px;
-
-            border-radius: 50%;
-
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-
-            margin: 0 auto 15px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 30px;
-
-            color: white;
-
-            font-weight: bold;
-
-        }
-
-
-
-        .user-card h2 {
-
-            font-size: 20px;
-
-            margin-bottom: 5px;
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-
-        }
-
-
-
-        .user-card .email {
-
-            font-size: 14px;
-
-            color: var(--text-light);
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-
-        }
-
-
-
-        .navigation {
-
-            list-style: none;
-
-            margin-bottom: auto;
-
-            padding: 0;
-
-        }
-
-
-
-        .navigation li {
-
-            margin-bottom: 5px;
-
-        }
-
-
-
-        .navigation li a {
-
-            display: flex;
-
-            align-items: center;
-
-            padding: 12px;
-
-            border-radius: 5px;
-
-            cursor: pointer;
-
-            transition: var(--transition);
-
-            text-decoration: none;
-
-            color: var(--text-dark);
-
-        }
-
-
-
-        .navigation li a:hover,
-
-        .navigation li a.active {
-
-            background: var(--light-bg);
-
-        }
-
-
-
-        .navigation li i {
-
-            margin-right: 12px;
-
-            font-size: 18px;
-
-            color: var(--secondary);
-
-            width: 24px;
-
-            text-align: center;
-
-        }
-
-
-
-        .navigation li .text {
-
-            flex: 1;
-
-            font-size: 16px;
-
-            font-weight: 500;
-
-        }
-
-
-
-        .badge {
-
-            display: inline-block;
-
-            padding: 3px 8px;
-
-            border-radius: 20px;
-
-            font-size: 12px;
-
-            font-weight: 600;
-
-            margin-left: 8px;
-
-        }
-
-
-
-        .badge-warning {
-
-            background-color: var(--warning);
-
-            color: #333;
-
-        }
-
-
-
-        .logout-container {
-
-            margin-top: 20px;
-
-            padding-top: 20px;
-
-            border-top: 1px solid var(--light-gray);
-
-        }
-
-
-
-        .logout-btn {
-
-            width: 100%;
-
-            padding: 12px;
-
-            background: transparent;
-
-            border: 1px solid var(--light-gray);
-
-            border-radius: 5px;
-
-            color: var(--text-light);
-
-            font-weight: 500;
-
-            cursor: pointer;
-
-            transition: var(--transition);
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            gap: 8px;
-
-        }
-
-
-
-        .logout-btn:hover {
-
-            background: rgba(220, 53, 69, 0.05);
-
-            color: var(--danger);
-
-            border-color: rgba(220, 53, 69, 0.3);
-
-        }
-
-
-
-        /* Main Content Styles */
-
-        .main-content {
-
-            flex: 1;
-
-            background: white;
-
-            border-radius: var(--border-radius);
-
-            box-shadow: var(--shadow);
-
-            padding: 30px;
-
-            min-height: 500px;
-
-        }
-
-
-
-        .dashboard-welcome {
-
-            text-align: center;
-
-            max-width: 600px;
-
-            margin: 0 auto;
-
-        }
-
-
-
-        .dashboard-welcome i {
-
-            font-size: 64px;
-
-            color: var(--light-gray);
-
-            margin-bottom: 20px;
-
-        }
-
-
-
-        .dashboard-welcome h2 {
-
-            font-size: 28px;
-
-            color: var(--primary);
-
-            margin-bottom: 15px;
-
-        }
-
-
-
-        .dashboard-welcome p {
-
-            font-size: 17px;
-
-            color: var(--text-light);
-
-            line-height: 1.6;
-
-            margin-bottom: 25px;
-
-        }
-
-
-
-        .stats-grid {
-
-            display: grid;
-
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-
-            gap: 20px;
-
-            margin-top: 30px;
-
-        }
-
-
-
-        .stat-card {
-
-            background: var(--light-bg);
-
-            border-radius: var(--border-radius);
-
-            padding: 20px;
-
-            text-align: center;
-
-            transition: var(--transition);
-
-            border: 1px solid var(--light-gray);
-
-        }
-
-
-
-        .stat-card:hover {
-
-            transform: translateY(-5px);
-
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-
-        }
-
-
-
-        .stat-icon {
-
-            font-size: 32px;
-
-            margin-bottom: 15px;
-
-            color: var(--secondary);
-
-        }
-
-
-
-        .stat-number {
-
-            font-size: 28px;
-
-            font-weight: 700;
-
-            color: var(--primary);
-
-            margin-bottom: 5px;
-
-        }
-
-
-
-        .stat-label {
-
-            font-size: 16px;
-
-            color: var(--text-light);
-
-        }
-
-
-
-        /* Footer */
-
-        .profile-footer {
-
-            margin-top: 30px;
-
-            text-align: center;
-
-            padding: 20px;
-
-            color: var(--text-light);
-
-            font-size: 14px;
-
-            border-top: 1px solid var(--light-gray);
-
-        }
-
-
-
-        /* Quick Actions */
-
-        .quick-actions {
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            gap: 15px;
-
-            justify-content: center;
-
-            margin-top: 30px;
-
-        }
-
-
-
-        .action-btn {
-
-            display: flex;
-
-            flex-direction: column;
-
-            align-items: center;
-
-            justify-content: center;
-
-            padding: 15px;
-
-            background: var(--light-bg);
-
-            border-radius: var(--border-radius);
-
-            width: 120px;
-
-            height: 120px;
-
-            text-align: center;
-
-            transition: var(--transition);
-
-            border: 1px solid var(--light-gray);
-
-            cursor: pointer;
-
-        }
-
-
-
-        .action-btn:hover {
-
-            background: white;
-
-            box-shadow: var(--shadow);
-
-            transform: translateY(-3px);
-
-        }
-
-
-
-        .action-btn i {
-
-            font-size: 28px;
-
-            color: var(--secondary);
-
-            margin-bottom: 10px;
-
-        }
-
-
-
-        .action-label {
-
-            font-size: 14px;
-
-            font-weight: 500;
-
-        }
-
-    </style>
+    <meta name="description" content="Panel de usuario - Diamond Bright Catamarans">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Panel de Usuario - Diamond Bright Catamarans</title>
+    
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="/css/dashboard.css?v=<?php echo time(); ?>">
 
 </head>
-
 <body>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+        <i class="fas fa-bars"></i>
+    </button>
 
-  <div class="container">
-
-        <!-- Header -->
-
-        <div class="profile-header">
-
-            <div class="welcome-section">
-
-                <h1>Panel de Usuario - Diamond Bright</h1>
-
-                <p>Bienvenido, <?php echo $nombreUsuario; ?></p>
-
-            </div>
-
-            <a href="index.php" class="btn btn-primary">
-
-                <i class="fas fa-home"></i> Volver al inicio
-
-            </a>
-
-        </div>
-
-
-
-        <div class="content-wrapper">
-
-            <!-- Sidebar -->
-
-            <div class="sidebar">
-
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <i class="fas fa-ship"></i>
+                    <span>DIAMOND BRIGHT</span>
+                </div>
+                
                 <div class="user-card">
-
-                    <div class="avatar">
-
+                    <div class="avatar" aria-label="Avatar de <?php echo $nombreUsuario; ?>">
                         <?php echo $inicialAvatar; ?>
-
                     </div>
-
                     <h2><?php echo $nombreUsuario; ?></h2>
-
-                    <p class="email"><?php echo $emailUsuario; ?></p>
-
+                    <p class="email" title="<?php echo $emailUsuario; ?>">
+                        <?php echo $emailUsuario; ?>
+                    </p>
                 </div>
+            </div>
 
-
-
+            <nav aria-label="Navegación principal">
                 <ul class="navigation">
-
-
                     <li>
-
-                        <a href="perfil.php">
-
+                        <a href="/dashboard.php" class="active">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span class="text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/html/perfil.php">
                             <i class="fas fa-user"></i>
-
-                            <div class="text">Perfil</div>
-
+                            <span class="text">Mi Perfil</span>
                         </a>
-
                     </li>
-
                     <li>
-
-                        <a href="reservas.php">
-
+                        <a href="/html/reservas.php">
                             <i class="fas fa-calendar-check"></i>
-
-                            <div class="text">Reservas</div>
-
-                            <span class="badge badge-warning"><?php echo $reservasActivas; ?></span>
-
+                            <span class="text">Mis Reservas</span>
+                            <?php if ($reservasActivas > 0): ?>
+                                <span class="badge"><?php echo $reservasActivas; ?></span>
+                            <?php endif; ?>
                         </a>
-
                     </li>
-
                     <li>
-
-                        <a href="agregar-pago.php">
-
+                        <a href="/html/pagos.php">
                             <i class="fas fa-credit-card"></i>
-
-                            <div class="text">Agregar Pago</div>
-
+                            <span class="text">Métodos de Pago</span>
                         </a>
-
                     </li>
-
                     <li>
-
-                        <a href="opiniones.php">
-
+                        <a href="/html/opiniones.php">
                             <i class="fas fa-star"></i>
-
-                            <div class="text">Opiniones dadas</div>
-
+                            <span class="text">Mis Opiniones</span>
                         </a>
-
                     </li>
-
                     <li>
-
-                        <a href="seguridad.php">
-
-                            <i class="fas fa-shield-alt"></i>
-
-                            <div class="text">Seguridad</div>
-
-                        </a>
-
-                    </li>
-
-                    <li>
-
-                        <a href="ayuda.php">
-
-                            <i class="fas fa-question-circle"></i>
-
-                            <div class="text">Ayuda</div>
-
-                        </a>
-
-                    </li>
-
-                </ul>
-
-
-
-                <div class="logout-container">
-
-                    <a href="logout.php" class="logout-btn">
-
-                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-
-                    </a>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- Main Content -->
-
-            <div class="main-content">
-
-                <div class="dashboard-welcome">
-
-                    <i class="fas fa-user-circle"></i>
-
-                    <h2>Bienvenido a tu panel de usuario, <?php echo $nombreUsuario; ?></h2>
-
-                    <p>Desde aquí puedes gestionar todas las actividades de tu cuenta, ver tus próximas reservas, configurar notificaciones y personalizar tu experiencia.</p>
-
-                    
-
-                    <div class="stats-grid">
-
-                        <div class="stat-card">
-
-                            <div class="stat-icon">
-
-                                <i class="fas fa-calendar-check"></i>
-
-                            </div>
-
-                            <div class="stat-number"><?php echo $reservasActivas; ?></div>
-
-                            <div class="stat-label">Reservas activas</div>
-
-                        </div>
-
-                        
-
-                        <div class="stat-card">
-
-                            <div class="stat-icon">
-
-                                <i class="fas fa-star"></i>
-
-                            </div>
-
-                            <div class="stat-number"><?php echo $valoracionPromedio; ?></div>
-
-                            <div class="stat-label">Valoración promedio</div>
-
-                        </div>
-
-                        
-
-                        <div class="stat-card">
-
-                            <div class="stat-icon">
-
-                                <i class="fas fa-ticket-alt"></i>
-
-                            </div>
-
-                            <div class="stat-number"><?php echo $cuponesDisponibles; ?></div>
-
-                            <div class="stat-label">Cupones disponibles</div>
-
-                        </div>
-
-                        
-
-                        <div class="stat-card">
-
-                            <div class="stat-icon">
-
-                                <i class="fas fa-ship"></i>
-
-                            </div>
-
-                            <div class="stat-number"><?php echo $viajesRealizados; ?></div>
-
-                            <div class="stat-label">Viajes realizados</div>
-
-                        </div>
-
-                    </div>
-
-                    
-
-                    <div class="quick-actions">
-
-                        <a href="tours.php" class="action-btn">
-
-                            <i class="fas fa-plus-circle"></i>
-
-                            <span class="action-label">Nueva reserva</span>
-
-                        </a>
-
-                        
-
-                        <a href="editar-perfil.php" class="action-btn">
-
-                            <i class="fas fa-user-edit"></i>
-
-                            <span class="action-label">Editar perfil</span>
-
-                        </a>
-
-                        
-
-                        <a href="agregar-pago.php" class="action-btn">
-
-                            <i class="fas fa-credit-card"></i>
-
-                            <span class="action-label">Añadir pago</span>
-
-                        </a>
-
-                        
-
-                        <a href="favoritos.php" class="action-btn">
-
+                        <a href="/html/favoritos.php">
                             <i class="fas fa-heart"></i>
-
-                            <span class="action-label">Favoritos</span>
-
+                            <span class="text">Favoritos</span>
                         </a>
+                    </li>
+                    <li>
+                        <a href="/html/seguridad.php">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="text">Seguridad</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/html/ayuda.php">
+                            <i class="fas fa-question-circle"></i>
+                            <span class="text">Ayuda</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
 
-                    </div>
-
-                </div>
-
+            <div class="sidebar-footer">
+                <a href="/html/logout.php" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
             </div>
+        </aside>
 
-        </div>
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <header class="main-header">
+                <div class="welcome-section">
+                    <h1>Bienvenido de nuevo, <?php echo $nombreUsuario; ?>!</h1>
+                    <p>Aquí puedes gestionar todas tus actividades y reservas</p>
+                </div>
+                
+                <div class="quick-actions">
+                    <a href="/html/nueva-reserva.php" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i>
+                        Nueva Reserva
+                    </a>
+                    <a href="/" class="btn btn-outline">
+                        <i class="fas fa-home"></i>
+                        Ir al Inicio
+                    </a>
+                </div>
+            </header>
 
+            <!-- Estadísticas -->
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Mis Estadísticas</h2>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-number"><?php echo $reservasActivas; ?></div>
+                        <div class="stat-label">Reservas Activas</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-number"><?php echo $valoracionPromedio; ?>/5</div>
+                        <div class="stat-label">Valoración Promedio</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="stat-number"><?php echo $cuponesDisponibles; ?></div>
+                        <div class="stat-label">Cupones Disponibles</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-ship"></i>
+                        </div>
+                        <div class="stat-number"><?php echo $viajesRealizados; ?></div>
+                        <div class="stat-label">Viajes Realizados</div>
+                    </div>
+                </div>
+            </section>
 
+            <!-- Acciones Rápidas -->
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-bolt"></i> Acciones Rápidas</h2>
+                </div>
+                
+                <div class="actions-grid">
+                    <a href="/html/nueva-reserva.php" class="action-card">
+                        <i class="fas fa-calendar-plus"></i>
+                        <h3>Nueva Reserva</h3>
+                        <p>Reserva tu próximo viaje</p>
+                    </a>
+                    
+                    <a href="/html/perfil.php" class="action-card">
+                        <i class="fas fa-user-edit"></i>
+                        <h3>Editar Perfil</h3>
+                        <p>Actualiza tu información</p>
+                    </a>
+                    
+                    <a href="/html/pagos.php" class="action-card">
+                        <i class="fas fa-credit-card"></i>
+                        <h3>Gestionar Pagos</h3>
+                        <p>Métodos de pago</p>
+                    </a>
+                    
+                    <a href="/html/favoritos.php" class="action-card">
+                        <i class="fas fa-heart"></i>
+                        <h3>Mis Favoritos</h3>
+                        <p>Ver favoritos guardados</p>
+                    </a>
+                    
+                    <a href="/html/tours.php" class="action-card">
+                        <i class="fas fa-binoculars"></i>
+                        <h3>Explorar Tours</h3>
+                        <p>Descubrir nuevos viajes</p>
+                    </a>
+                    
+                    <a href="/html/ayuda.php" class="action-card">
+                        <i class="fas fa-question-circle"></i>
+                        <h3>Centro de Ayuda</h3>
+                        <p>Soporte y preguntas</p>
+                    </a>
+                </div>
+            </section>
 
-        <div class="profile-footer">
+            <!-- Última Actividad -->
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Actividad Reciente</h2>
+                </div>
+                
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>Inicio de sesión exitoso</h4>
+                            <p>Sesión iniciada desde <?php echo htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? 'IP desconocida'); ?></p>
+                        </div>
+                        <div class="activity-time">
+                            Justo ahora
+                        </div>
+                    </li>
+                    
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-ship"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4><?php echo $viajesRealizados > 0 ? 'Último viaje completado' : 'Aún no has realizado viajes'; ?></h4>
+                            <p><?php echo $viajesRealizados > 0 ? 'Viaje #' . $viajesRealizados : 'Reserva tu primer viaje ahora'; ?></p>
+                        </div>
+                        <div class="activity-time">
+                            <?php echo $viajesRealizados > 0 ? 'Hace 2 semanas' : '---'; ?>
+                        </div>
+                    </li>
+                    
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>Tu valoración actual</h4>
+                            <p><?php echo $valoracionPromedio; ?> de 5 estrellas</p>
+                        </div>
+                        <div class="activity-time">
+                            Actualizado
+                        </div>
+                    </li>
+                </ul>
+            </section>
 
-            <p>© 2025 Diamond Bright Catamarans. Todos los derechos reservados.</p>
-
-            <p>Tu cuenta está segura con nosotros. <a href="politica.php" style="color: var(--secondary); text-decoration: none;">Política de privacidad</a></p>
-
-        </div>
-
+            <footer class="dashboard-footer">
+                <p>© <?php echo date('Y'); ?> Diamond Bright Catamarans. Todos los derechos reservados.</p>
+                <p>
+                    <a href="/html/politica-privacidad.php" style="color: var(--secondary-blue); text-decoration: none; margin-right: 15px;">
+                        Política de Privacidad
+                    </a>
+                    <a href="/html/terminos.php" style="color: var(--secondary-blue); text-decoration: none;">
+                        Términos y Condiciones
+                    </a>
+                </p>
+            </footer>
+        </main>
     </div>
 
-
-
     <script>
-
-        // Este script maneja la clase 'active' en la navegación
-
         document.addEventListener('DOMContentLoaded', function() {
-
-            const currentPage = window.location.pathname.split('/').pop();
-
-            const navLinks = document.querySelectorAll('.navigation li a');
-
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
             
-
-            navLinks.forEach(link => {
-
-                const href = link.getAttribute('href');
-
-                if (currentPage === href) {
-
-                    link.classList.add('active');
-
+            // Toggle sidebar en mobile
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                    const icon = this.querySelector('i');
+                    if (sidebar.classList.contains('open')) {
+                        icon.className = 'fas fa-times';
+                        this.setAttribute('aria-label', 'Cerrar menú');
+                    } else {
+                        icon.className = 'fas fa-bars';
+                        this.setAttribute('aria-label', 'Abrir menú');
+                    }
+                });
+            }
+            
+            // Cerrar sidebar al hacer clic fuera en mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768 && sidebar && menuToggle) {
+                    const isClickInsideSidebar = sidebar.contains(event.target);
+                    const isClickOnToggle = menuToggle.contains(event.target);
+                    
+                    if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('open')) {
+                        sidebar.classList.remove('open');
+                        menuToggle.querySelector('i').className = 'fas fa-bars';
+                        menuToggle.setAttribute('aria-label', 'Abrir menú');
+                    }
                 }
-
             });
-
+            
+            // Manejar navegación activa
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.navigation li a');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (currentPage === href || (currentPage === '' && href === '/dashboard.php')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // Prevenir reenvío de formularios
+            if (window.history.replaceState) {
+                window.history.replaceState(null, null, window.location.href);
+            }
+            
+            // Actualizar tiempo de actividad
+            function updateActivityTime() {
+                const activityTime = document.querySelector('.activity-time');
+                if (activityTime && activityTime.textContent === 'Justo ahora') {
+                    setTimeout(() => {
+                        activityTime.textContent = 'Hace unos minutos';
+                    }, 60000); // 1 minuto
+                }
+            }
+            
+            updateActivityTime();
         });
-
     </script>
-
 </body>
-
 </html>
