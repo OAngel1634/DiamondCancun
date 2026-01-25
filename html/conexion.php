@@ -7,7 +7,7 @@ $db_name = getenv('MYSQLDATABASE') ?: 'diamond_bright'; // Tu BD local
 $db_port = getenv('MYSQLPORT') ?: 3306;
 
 // Crear conexión
-$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name, $db_port);
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name, $db_port);
 
 // Verificar conexión (y matar el proceso si falla)
 if (!$conn) {

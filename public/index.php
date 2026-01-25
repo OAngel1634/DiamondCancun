@@ -48,7 +48,7 @@ header("Pragma: no-cache");
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <link rel="stylesheet" href="/css/styles.css?v=<?php echo time(); ?>">
+  <link rel="stylesheet" href="/public/assets/css/styles.css?v=<?php echo time(); ?>">
 
 </head>
 <body>
@@ -271,7 +271,8 @@ header("Pragma: no-cache");
     });
   </script>
 
-  <script src="./Script/index.js"></script>
+<script src="public/assets/js/index.js?v=<?php echo time(); ?>"></script>
+ 
 </body>
 
 <?php
