@@ -37,12 +37,6 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 
-$cssContent = file_get_contents(__DIR__ . '/css/styles.css');
-$cssLines = count(explode("\n", $cssContent));
-echo "<!-- DEBUG: CSS lines: $cssLines -->\n";
-echo "<!-- DEBUG: CSS last 100 chars: " . substr($cssContent, -100) . " -->\n";
-
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
