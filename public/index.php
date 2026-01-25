@@ -1,13 +1,20 @@
 <?php
 declare(strict_types=1);
 
+// 1. FORZAR VISIBILIDAD DE ERRORES (Solo para desarrollo)
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 $isLocal = in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']);
 
-define('URL_BASE', $isLocal ? 'http://localhost/tu-carpeta-proyecto/' : '/');
+// Sugerencia: Usa rutas relativas desde la raíz para evitar problemas de protocolo (http/https)
+define('URL_BASE', $isLocal ? '/tu-carpeta-proyecto/' : '/');
 
-$cssUrl = URL_BASE . 'assets/css/styles.css';
-$jsUrl  = URL_BASE . 'assets/js/index.js';
-$imgDir = URL_BASE . 'assets/imagenes/';
+$cssUrl    = URL_BASE . 'assets/css/styles.css';
+$jsUrl     = URL_BASE . 'assets/js/index.js';
+$imagesUrl = URL_BASE . 'assets/imagenes/'; // Corregido: Coincide con el nombre usado abajo
+$assetBase = URL_BASE . 'assets/';          // Declarada: Para que el meta no falle
 
 session_start([
     'cookie_httponly' => true,
@@ -18,7 +25,6 @@ session_start([
 $isAuthenticated = isset($_SESSION['usuario_id']);
 $nombreUsuario   = $_SESSION['usuario_nombre'] ?? '';
 $emailUsuario    = $_SESSION['usuario_email'] ?? '';
-$userRole        = $_SESSION['usuario_rol'] ?? 'cliente';
 
 ?>
 <!DOCTYPE html>
