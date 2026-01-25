@@ -1,25 +1,27 @@
-
 <?php
-
 declare(strict_types=1);
 error_reporting(E_ALL & ~E_DEPRECATED);
-ini_set('display_errors', '0');
+ini_set('display_errors', '1'); // CAMBIA A '1' PARA DEBUG
 
 $isProduction = ($_ENV['RAILWAY_ENVIRONMENT'] ?? $_ENV['NODE_ENV'] ?? 'development') === 'production';
 $isLocal = ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' || 
            ($_SERVER['SERVER_ADDR'] ?? '') === '127.0.0.1' ||
            str_contains($_SERVER['HTTP_HOST'] ?? '', '.local');
 
+// SOLUCIÓN PARA RAILWAY - Desactiva temporalmente la redirección HTTPS
+// Comenta esto para probar:
+/*
 if ($isProduction && !$isLocal && 
     (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') &&
     ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'http') !== 'https') {
     header("Location: https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
     exit();
 }
+*/
 
 session_start([
     'cookie_path' => '/',
-    'cookie_secure' => $isProduction,
+    'cookie_secure' => false, // CAMBIA A false TEMPORALMENTE
     'cookie_httponly' => true,
     'cookie_samesite' => 'Lax',
     'use_strict_mode' => true,
@@ -37,10 +39,9 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     $emailUsuario = htmlspecialchars($_SESSION['usuario_email'] ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-$host = $_SERVER['HTTP_HOST'];
-$base_url = $protocol . "://" . $host;
-
+// DEBUG: Verifica si estamos en Railway
+echo "<!-- DEBUG: HTTP_HOST = " . ($_SERVER['HTTP_HOST'] ?? 'NO HOST') . " -->\n";
+echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " -->\n";
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -49,19 +50,28 @@ $base_url = $protocol . "://" . $host;
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <link rel="stylesheet" href="css/styles.css?v=<?php echo time(); ?>">
+  <!-- Font Awesome SIN integrity para probar -->
+  <link rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS LOCAL - USA ./ para rutas relativas -->
+  <link rel="stylesheet" href="./css/styles.css?v=<?php echo time(); ?>">
 
 </head>
-
 <body>
+  <!-- Debug visual -->
+  <div style="background: green; color: white; padding: 10px; display: none;" id="debug-info">
+    Página cargada - CSS: <?php echo file_exists('./css/styles.css') ? 'EXISTE' : 'NO EXISTE'; ?>
+  </div>
+  
   <div id="content-wrapper">
     
     <nav aria-label="Navegación principal">
       <ul>
-  
-        <li><a href="/html/islamujeres.php">Isla Mujeres</a></li>
-        <li><a href="/html/snorkel.php">Snorkeling</a></li>
-        <li><a href="/html/club.php">Club playa</a></li>
+        <!-- CORRIGE RUTAS: quita /html/ -->
+        <li><a href="./html/islamujeres.php">Isla Mujeres</a></li>
+        <li><a href="./html/snorkel.php">Snorkeling</a></li>
+        <li><a href="./html/club.php">Club playa</a></li>
       </ul>
       
       <div class="user-icon-container" aria-label="Acceso de usuario">
@@ -74,23 +84,22 @@ $base_url = $protocol . "://" . $host;
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
           <?php if (!$isAuthenticated): ?>
-            <!-- Enlaces para usuarios no autenticados - SOLO DENTRO DEL DROPDOWN -->
-            <a href="/html/inicio-sesion.php" id="loginLink" role="button">
+            <!-- Enlaces para usuarios no autenticados -->
+            <a href="./html/inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
-            <a href="/html/registro.php" id="registerLink" role="button">
+            <a href="./html/registro.php" id="registerLink" role="button">
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
           <?php else: ?>
-           
             <div style="padding: 15px 20px; color: #f1faee; border-bottom: 1px solid rgba(255,255,255,0.1);">
               <strong><?php echo $nombreUsuario ?: 'Usuario'; ?></strong><br>
               <small><?php echo $emailUsuario ?: ''; ?></small>
             </div>
-            <a href="/dashboard.php"><i class="fas fa-user-circle" aria-hidden="true"></i> Mi perfil</a>
-            <a href="/mis-reservas.php"><i class="fas fa-calendar-check" aria-hidden="true"></i> Mis reservas</a>
-            <a href="/configuracion.php"><i class="fas fa-cog" aria-hidden="true"></i> Configuración</a>
-            <a href="/logout.php" id="logoutLink"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión</a>
+            <a href="./dashboard.php"><i class="fas fa-user-circle" aria-hidden="true"></i> Mi perfil</a>
+            <a href="./mis-reservas.php"><i class="fas fa-calendar-check" aria-hidden="true"></i> Mis reservas</a>
+            <a href="./configuracion.php"><i class="fas fa-cog" aria-hidden="true"></i> Configuración</a>
+            <a href="./logout.php" id="logoutLink"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar sesión</a>
           <?php endif; ?>
         </div>
       </div>
@@ -102,9 +111,9 @@ $base_url = $protocol . "://" . $host;
     </div>
 
     <section class="hero" role="banner">
-      
+      <!-- CORRIGE RUTA: quita / del inicio -->
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
-        <source src="/Imagenes/Catamaran.mp4" type="video/mp4">
+        <source src="./Imagenes/Catamaran.mp4" type="video/mp4">
         Tu navegador no soporta el elemento de video.
       </video>
       <div class="hero-content">
@@ -115,22 +124,21 @@ $base_url = $protocol . "://" . $host;
         <p class="subtitle">Somos más que un Tour</p>
         <p class="tagline">Somos una experiencia de por vida</p>
         
-       
         <?php if (!$isAuthenticated): ?>
           <div class="redirect-container">
-            <a href="/html/inicio-sesion.php" class="redirect-btn">
+            <a href="./html/inicio-sesion.php" class="redirect-btn">
               <i class="fas fa-sign-in-alt"></i> Iniciar sesión
             </a>
-            <a href="/html/registro.php" class="redirect-btn">
+            <a href="./html/registro.php" class="redirect-btn">
               <i class="fas fa-user-plus"></i> Registrarse
             </a>
           </div>
         <?php else: ?>
           <div class="redirect-container">
-            <a href="/dashboard.php" class="redirect-btn">
+            <a href="./dashboard.php" class="redirect-btn">
               <i class="fas fa-user-circle"></i> Ir a mi perfil
             </a>
-            <a href="/html/Reserva.php" class="redirect-btn">
+            <a href="./html/Reserva.php" class="redirect-btn">
               <i class="fas fa-calendar-plus"></i> Hacer reserva
             </a>
           </div>
@@ -179,8 +187,8 @@ $base_url = $protocol . "://" . $host;
 
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
-     
-        <img src="/Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
+        <!-- CORRIGE RUTA -->
+        <img src="./Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
       </div>
       <div class="about-text">
         <h2 id="about-heading">Acerca de nosotros</h2>
@@ -192,15 +200,14 @@ $base_url = $protocol . "://" . $host;
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
-       
-        <a href="/html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
+        <a href="./html/Reserva.php" class="btn-pill" id="saberMasBtn" role="button">
           <span class="btn-text">Saber más</span>
           <span class="btn-icon">➔</span>
         </a>
       </div>
       <div class="image">
-      
-        <img src="/Imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
+        <!-- CORRIGE RUTA -->
+        <img src="./Imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
       </div>
     </section>
 
@@ -231,90 +238,57 @@ $base_url = $protocol . "://" . $host;
     ?>
   </div>
 
-<script>
-
-window.authData = {
-    isAuthenticated: <?php echo $isAuthenticated ? 'true' : 'false'; ?>,
-    userName: '<?php echo addslashes($nombreUsuario ?? ''); ?>',
-    userEmail: '<?php echo addslashes($emailUsuario ?? ''); ?>'
-};
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    const userIcon = document.getElementById('userIcon');
-    const userDropdown = document.getElementById('userDropdown');
+  <script>
+    // Debug en consola
+    console.log('Página cargada - CSS:', document.querySelector('link[href*="styles.css"]') ? 'Encontrado' : 'No encontrado');
     
-    if (userIcon && userDropdown) {
-        userIcon.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const isExpanded = userIcon.getAttribute('aria-expanded') === 'true';
-            userIcon.setAttribute('aria-expanded', !isExpanded);
-            userDropdown.setAttribute('aria-hidden', isExpanded);
-            userDropdown.classList.toggle('active', !isExpanded);
-        });
+    window.authData = {
+        isAuthenticated: <?php echo $isAuthenticated ? 'true' : 'false'; ?>,
+        userName: '<?php echo addslashes($nombreUsuario ?? ''); ?>',
+        userEmail: '<?php echo addslashes($emailUsuario ?? ''); ?>'
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const userIcon = document.getElementById('userIcon');
+        const userDropdown = document.getElementById('userDropdown');
         
+        if (userIcon && userDropdown) {
+            userIcon.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isExpanded = userIcon.getAttribute('aria-expanded') === 'true';
+                userIcon.setAttribute('aria-expanded', !isExpanded);
+                userDropdown.setAttribute('aria-hidden', isExpanded);
+                userDropdown.classList.toggle('active', !isExpanded);
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userIcon.setAttribute('aria-expanded', 'false');
+                    userDropdown.setAttribute('aria-hidden', 'true');
+                    userDropdown.classList.remove('active');
+                }
+            });
+        }
         
-        document.addEventListener('click', function(e) {
-            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
-                userIcon.setAttribute('aria-expanded', 'false');
-                userDropdown.setAttribute('aria-hidden', 'true');
-                userDropdown.classList.remove('active');
-            }
-        });
-    }
-    
-    const timeElement = document.getElementById('current-time');
-    if (timeElement) {
-        const updateTime = () => {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                hour: '2-digit', 
-                minute: '2-digit',
-                timeZone: 'America/Cancun'
+        const timeElement = document.getElementById('current-time');
+        if (timeElement) {
+            const updateTime = () => {
+                const now = new Date();
+                const options = { 
+                    weekday: 'long', 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    timeZone: 'America/Cancun'
+                };
+                timeElement.textContent = now.toLocaleDateString('es-MX', options);
             };
-            timeElement.textContent = now.toLocaleDateString('es-MX', options);
-        };
-        updateTime();
-        setInterval(updateTime, 60000);
-    }
-});
+            updateTime();
+            setInterval(updateTime, 60000);
+        }
+    });
+  </script>
 
-document.addEventListener('DOMContentLoaded', function() {
-    const userIcon = document.getElementById('userIcon');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userIcon && userDropdown) {
-        userIcon.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const isExpanded = userIcon.getAttribute('aria-expanded') === 'true';
-            userIcon.setAttribute('aria-expanded', !isExpanded);
-            userDropdown.setAttribute('aria-hidden', isExpanded);
-            userDropdown.classList.toggle('active', !isExpanded);
-        });
-        
-        document.addEventListener('click', function(e) {
-            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
-                userIcon.setAttribute('aria-expanded', 'false');
-                userDropdown.setAttribute('aria-hidden', 'true');
-                userDropdown.classList.remove('active');
-            }
-        });
-        
-        
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && userIcon.getAttribute('aria-expanded') === 'true') {
-                userIcon.setAttribute('aria-expanded', 'false');
-                userDropdown.setAttribute('aria-hidden', 'true');
-                userDropdown.classList.remove('active');
-            }
-        });
-    }
-});
-
-</script>
-
-<script src="/Script/index.js"></script>
- 
+  <!-- CORRIGE RUTA DEL SCRIPT -->
+  <script src="./Script/index.js"></script>
 </body>
 </html>
