@@ -1,27 +1,16 @@
 <?php
 declare(strict_types=1);
 error_reporting(E_ALL & ~E_DEPRECATED);
-ini_set('display_errors', '1'); // CAMBIA A '1' PARA DEBUG
+ini_set('display_errors', '1');
 
 $isProduction = ($_ENV['RAILWAY_ENVIRONMENT'] ?? $_ENV['NODE_ENV'] ?? 'development') === 'production';
 $isLocal = ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' || 
            ($_SERVER['SERVER_ADDR'] ?? '') === '127.0.0.1' ||
            str_contains($_SERVER['HTTP_HOST'] ?? '', '.local');
 
-// SOLUCIÓN PARA RAILWAY - Desactiva temporalmente la redirección HTTPS
-// Comenta esto para probar:
-/*
-if ($isProduction && !$isLocal && 
-    (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') &&
-    ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'http') !== 'https') {
-    header("Location: https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-    exit();
-}
-*/
-
 session_start([
     'cookie_path' => '/',
-    'cookie_secure' => false, // CAMBIA A false TEMPORALMENTE
+    'cookie_secure' => false,
     'cookie_httponly' => true,
     'cookie_samesite' => 'Lax',
     'use_strict_mode' => true,
@@ -39,7 +28,6 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     $emailUsuario = htmlspecialchars($_SESSION['usuario_email'] ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-// DEBUG: Verifica si estamos en Railway
 echo "<!-- DEBUG: HTTP_HOST = " . ($_SERVER['HTTP_HOST'] ?? 'NO HOST') . " -->\n";
 echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " -->\n";
 ?>
@@ -50,17 +38,14 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <!-- Font Awesome SIN integrity para probar -->
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- CSS LOCAL - USA ./ para rutas relativas -->
   <link rel="stylesheet" href="./css/styles.css?v=<?php echo time(); ?>">
 
 </head>
 <body>
-  <!-- Debug visual -->
-  <div style="background: green; color: white; padding: 10px; display: none;" id="debug-info">
+  <div id="debug-info">
     Página cargada - CSS: <?php echo file_exists('./css/styles.css') ? 'EXISTE' : 'NO EXISTE'; ?>
   </div>
   
@@ -68,7 +53,6 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
     
     <nav aria-label="Navegación principal">
       <ul>
-        <!-- CORRIGE RUTAS: quita /html/ -->
         <li><a href="./html/islamujeres.php">Isla Mujeres</a></li>
         <li><a href="./html/snorkel.php">Snorkeling</a></li>
         <li><a href="./html/club.php">Club playa</a></li>
@@ -84,7 +68,6 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
           <?php if (!$isAuthenticated): ?>
-            <!-- Enlaces para usuarios no autenticados -->
             <a href="./html/inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
@@ -92,7 +75,7 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
           <?php else: ?>
-            <div style="padding: 15px 20px; color: #f1faee; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div>
               <strong><?php echo $nombreUsuario ?: 'Usuario'; ?></strong><br>
               <small><?php echo $emailUsuario ?: ''; ?></small>
             </div>
@@ -111,7 +94,6 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
     </div>
 
     <section class="hero" role="banner">
-      <!-- CORRIGE RUTA: quita / del inicio -->
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
         <source src="./Imagenes/Catamaran.mp4" type="video/mp4">
         Tu navegador no soporta el elemento de video.
@@ -187,7 +169,6 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
 
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
-        <!-- CORRIGE RUTA -->
         <img src="./Imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
       </div>
       <div class="about-text">
@@ -206,7 +187,6 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
         </a>
       </div>
       <div class="image">
-        <!-- CORRIGE RUTA -->
         <img src="./Imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
       </div>
     </section>
@@ -239,7 +219,6 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
   </div>
 
   <script>
-    // Debug en consola
     console.log('Página cargada - CSS:', document.querySelector('link[href*="styles.css"]') ? 'Encontrado' : 'No encontrado');
     
     window.authData = {
@@ -288,7 +267,6 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
     });
   </script>
 
-  <!-- CORRIGE RUTA DEL SCRIPT -->
   <script src="./Script/index.js"></script>
 </body>
 </html>
