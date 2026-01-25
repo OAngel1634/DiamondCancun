@@ -30,6 +30,8 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
 
 echo "<!-- DEBUG: HTTP_HOST = " . ($_SERVER['HTTP_HOST'] ?? 'NO HOST') . " -->\n";
 echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " -->\n";
+
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -41,7 +43,7 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <link rel="stylesheet" href="./css/styles.css?v=<?php echo time(); ?>">
+  <link rel="stylesheet" href="./css/test.css">
 
 </head>
 <body>
@@ -269,4 +271,25 @@ echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " --
 
   <script src="./Script/index.js"></script>
 </body>
+
+<?php
+// En index.php, justo después de <body>
+$cssUrl = '/css/styles.css';
+$fullUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . 
+           $_SERVER['HTTP_HOST'] . $cssUrl;
+?>
+
+<script>
+console.log('CSS URL:', '<?php echo $cssUrl; ?>');
+console.log('CSS Full URL:', '<?php echo $fullUrl; ?>');
+
+// Probar cargar CSS dinámicamente
+fetch('<?php echo $cssUrl; ?>')
+    .then(response => {
+        console.log('CSS Status:', response.status);
+        return response.text();
+    })
+    .then(text => console.log('CSS Length:', text.length))
+    .catch(error => console.error('CSS Error:', error));
+</script>
 </html>
