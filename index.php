@@ -31,6 +31,17 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
 echo "<!-- DEBUG: HTTP_HOST = " . ($_SERVER['HTTP_HOST'] ?? 'NO HOST') . " -->\n";
 echo "<!-- DEBUG: REQUEST_URI = " . ($_SERVER['REQUEST_URI'] ?? 'NO URI') . " -->\n";
 
+header("Content-Type: text/html; charset=UTF-8");
+
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+$cssContent = file_get_contents(__DIR__ . '/css/styles.css');
+$cssLines = count(explode("\n", $cssContent));
+echo "<!-- DEBUG: CSS lines: $cssLines -->\n";
+echo "<!-- DEBUG: CSS last 100 chars: " . substr($cssContent, -100) . " -->\n";
+
 
 ?>
 <!DOCTYPE html>
