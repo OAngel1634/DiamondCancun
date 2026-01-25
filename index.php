@@ -52,9 +52,6 @@ header("Pragma: no-cache");
 
 </head>
 <body>
-  <div id="debug-info">
-    Página cargada - CSS: <?php echo file_exists('./css/styles.css') ? 'EXISTE' : 'NO EXISTE'; ?>
-  </div>
   
   <div id="content-wrapper">
     
