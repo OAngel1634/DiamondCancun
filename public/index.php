@@ -130,8 +130,6 @@ header("Pragma: no-cache");
     <!-- CSS Principal -->
     <link rel="stylesheet" href="<?php echo $assetsBase; ?>css/styles.css?v=<?php echo time(); ?>">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="<?php echo $assetsBase; ?>imagenes/favicon.ico">
 </head>
 <body>
     <!-- WRAPPER -->
@@ -140,11 +138,6 @@ header("Pragma: no-cache");
         <!-- NAVEGACIÓN PRINCIPAL -->
         <nav aria-label="Navegación principal">
             <div class="nav-container">
-                <div class="nav-logo">
-                    <a href="/">
-                        <img src="<?php echo $assetsBase; ?>imagenes/logo.png" alt="Diamond Bright Logo" height="40">
-                    </a>
-                </div>
                 
                 <ul class="nav-menu">
                     <li><a href="/islamujeres">Isla Mujeres</a></li>
@@ -275,7 +268,7 @@ header("Pragma: no-cache");
         <!-- ACERCA DE -->
         <section class="about" aria-labelledby="about-heading">
             <div class="about-image">
-                <img src="<?php echo $assetsBase; ?>imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
+                <img src="<?php echo $assetsBase; ?>/public/assets/imagenes/Poster.jpg" alt="Tour en Isla Mujeres con Diamond Bright">
             </div>
             <div class="about-text">
                 <h2 id="about-heading">Acerca de nosotros</h2>
@@ -294,7 +287,7 @@ header("Pragma: no-cache");
                 </a>
             </div>
             <div class="image">
-                <img src="<?php echo $assetsBase; ?>imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
+                <img src="<?php echo $assetsBase; ?>/public/assets/imagenes/Hand.jpg" alt="Vela en Isla Mujeres con Diamond Bright">
             </div>
         </section>
 
@@ -321,32 +314,6 @@ header("Pragma: no-cache");
             </div>
         </div>
 
-        <!-- FOOTER -->
-        <footer class="main-footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Diamond Bright</h3>
-                    <p>Experiencias inolvidables en el Caribe Mexicano</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Enlaces rápidos</h4>
-                    <ul>
-                        <li><a href="/tours">Tours</a></li>
-                        <li><a href="/reserva">Reservar</a></li>
-                        <li><a href="/contacto">Contacto</a></li>
-                        <li><a href="/terminos">Términos y condiciones</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contacto</h4>
-                    <p><i class="fas fa-phone"></i> +52 998 123 4567</p>
-                    <p><i class="fas fa-envelope"></i> info@diamondbright.com</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> Diamond Bright Catamarán. Todos los derechos reservados.</p>
-            </div>
-        </footer>
     </div>
 
     <!-- SCRIPTS -->
