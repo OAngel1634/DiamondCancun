@@ -54,7 +54,7 @@ echo "<!-- DEBUG: CSS last 100 chars: " . substr($cssContent, -100) . " -->\n";
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <link rel="stylesheet" href="./css/test.css">
+  <link rel="stylesheet" href="style.css">
 
 </head>
 <body>
