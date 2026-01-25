@@ -3,7 +3,6 @@ declare(strict_types=1);
 error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set('display_errors', '0');
 
-// Detección de entorno similar al login
 $isProduction = ($_ENV['RAILWAY_ENVIRONMENT'] ?? $_ENV['NODE_ENV'] ?? 'development') === 'production';
 $isLocal = ($_SERVER['HTTP_HOST'] ?? '') === 'localhost' || 
            ($_SERVER['SERVER_ADDR'] ?? '') === '127.0.0.1' ||
@@ -18,7 +17,6 @@ if ($isProduction && !$isLocal &&
     exit();
 }
 
-// Configuración segura de sesiones (similar al login)
 session_start([
     'cookie_path' => '/',
     'cookie_secure' => $isProduction,
@@ -35,12 +33,10 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     exit();
 }
 
-// Headers de seguridad adicionales
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 
-// Inicializar variables
 $error = '';
 $inputValues = [
     'nombre' => '',
@@ -49,15 +45,13 @@ $inputValues = [
 $csrfToken = bin2hex(random_bytes(32));
 $_SESSION['csrf_token'] = $csrfToken;
 
-// Procesar formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
     try {
-        // Verificar CSRF token
+     
         if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
             throw new Exception("Token de seguridad inválido. Por favor, recarga la página.");
         }
         
-        // Rate limiting básico
         if (!isset($_SESSION['reg_attempts'])) {
             $_SESSION['reg_attempts'] = 0;
             $_SESSION['reg_last_attempt'] = time();
@@ -68,17 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
             throw new Exception("Demasiados intentos. Por favor, espera 5 minutos.");
         }
         
-        // Sanitizar y validar entradas
         $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
         $password = $_POST['password'] ?? '';
         $confirm_password = $_POST['confirm_password'] ?? '';
         
-        // Guardar valores para repoblar formulario (con sanitización adicional)
         $inputValues['nombre'] = htmlspecialchars($nombre ?? '', ENT_QUOTES, 'UTF-8');
         $inputValues['email'] = htmlspecialchars($email ?? '', ENT_QUOTES, 'UTF-8');
         
-        // Validaciones
         if (empty($nombre) || strlen(trim($nombre)) < 2) {
             throw new Exception("El nombre debe tener al menos 2 caracteres");
         }
@@ -123,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
             throw new Exception("Debes aceptar los términos y condiciones");
         }
         
-        // Verificar si el usuario ya existe
         require_once __DIR__ . '/../includes/conexion.php';
         
         $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
@@ -136,13 +126,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
         }
         $stmt->close();
         
-        // Crear hash de contraseña
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         
-        // Limpiar contraseña de memoria
         unset($password, $confirm_password);
         
-        // Insertar usuario
         $stmt = $conn->prepare("INSERT INTO usuarios (nombre, email, password, activo, fecha_registro) VALUES (?, ?, ?, 1, NOW())");
         $stmt->bind_param("sss", $nombre, $email, $passwordHash);
         
@@ -153,29 +140,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
         $usuario_id = $stmt->insert_id;
         $stmt->close();
         
-        // Registrar éxito
         if ($isProduction) {
             error_log("Registro exitoso - Usuario ID: $usuario_id, Email: $email, IP: " . ($_SERVER['REMOTE_ADDR'] ?? ''));
         }
         
-        // Resetear intentos de registro
         $_SESSION['reg_attempts'] = 0;
         
-        // Establecer sesión (similar al login)
         $_SESSION['usuario_id'] = (int)$usuario_id;
         $_SESSION['usuario_email'] = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
         $_SESSION['usuario_nombre'] = htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8');
         $_SESSION['login_time'] = time();
         
-        // Generar nuevo token CSRF para la sesión
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         
-        // Redirigir al dashboard
         header("Location: /dashboard.php");
         exit();
         
     } catch (Exception $e) {
-        // Incrementar contador de intentos fallidos
+     
         if (!isset($_SESSION['reg_attempts'])) {
             $_SESSION['reg_attempts'] = 1;
         } else {
@@ -192,7 +174,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['registro'])) {
     }
 }
 
-// Asegurar que $error sea string
 $error = (string)$error;
 ?>
 <!DOCTYPE html>
@@ -206,554 +187,8 @@ $error = (string)$error;
     
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <link rel="stylesheet" href="/css/registro.css?v=<?php echo time(); ?>">
     
-    <style>
-        :root {
-            --primary-blue: #003366;
-            --secondary-blue: #0099cc;
-            --accent-gold: #D4AF37;
-            --light-bg: #f0f8ff;
-            --white: #ffffff;
-            --light-gray: #e0e0e0;
-            --text-dark: #333333;
-            --text-light: #666666;
-            --shadow: 0 8px 20px rgba(0, 51, 102, 0.15);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --error-color: #dc3545;
-            --success-color: #28a745;
-            --warning-color: #ff9800;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-            background: linear-gradient(135deg, var(--light-bg) 0%, rgba(0, 153, 204, 0.1) 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            line-height: 1.6;
-        }
-
-        .app-container {
-            display: flex;
-            max-width: 1200px;
-            width: 100%;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            background: var(--white);
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .brand-section {
-            flex: 1;
-            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            color: var(--white);
-            position: relative;
-            overflow: hidden;
-            min-height: 600px;
-        }
-
-        .brand-section::before {
-            content: "";
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .brand-section::after {
-            content: "";
-            position: absolute;
-            bottom: -80px;
-            left: -30px;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            animation: float 15s infinite ease-in-out reverse;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(20px, 20px); }
-        }
-
-        .brand-header {
-            position: relative;
-            z-index: 2;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 40px;
-        }
-
-        .logo-icon {
-            font-size: 32px;
-            color: var(--accent-gold);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        .logo-text {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .brand-title {
-            font-size: 36px;
-            margin-bottom: 24px;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .brand-subtitle {
-            font-size: 18px;
-            opacity: 0.9;
-            line-height: 1.7;
-            max-width: 400px;
-        }
-
-        .brand-image {
-            text-align: center;
-            position: relative;
-            z-index: 2;
-            margin: 40px 0;
-        }
-
-        .sailboat-icon {
-            font-size: 180px;
-            color: var(--accent-gold);
-            opacity: 0.8;
-            filter: drop-shadow(0 5px 15px rgba(212, 175, 55, 0.3));
-        }
-
-        .brand-footer {
-            position: relative;
-            z-index: 2;
-            font-size: 14px;
-            opacity: 0.8;
-            margin-top: 20px;
-        }
-
-        .register-section {
-            flex: 1;
-            padding: 60px 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background: var(--white);
-        }
-
-        .register-header {
-            text-align: center;
-            margin-bottom: 48px;
-        }
-
-        .register-title {
-            font-size: 32px;
-            color: var(--primary-blue);
-            margin-bottom: 12px;
-            font-weight: 700;
-        }
-
-        .register-subtitle {
-            color: var(--text-light);
-            font-size: 16px;
-        }
-
-        .form-container {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .error-message {
-            background-color: #fff5f5;
-            color: var(--error-color);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            text-align: center;
-            border: 1px solid #fed7d7;
-            font-size: 15px;
-            display: <?= $error ? 'flex' : 'none' ?>;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            animation: shake 0.5s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .input-group {
-            margin-bottom: 24px;
-            position: relative;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-dark);
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        .input-group input {
-            width: 100%;
-            height: 56px;
-            padding: 0 20px;
-            border: 2px solid var(--light-gray);
-            border-radius: 12px;
-            font-size: 16px;
-            transition: var(--transition);
-            background: #fafafa;
-        }
-
-        .input-group input:focus {
-            border-color: var(--secondary-blue);
-            background: var(--white);
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(0, 153, 204, 0.15);
-        }
-
-        .input-group input:invalid:not(:focus):not(:placeholder-shown) {
-            border-color: var(--error-color);
-        }
-
-        .input-group i {
-            position: absolute;
-            right: 20px;
-            top: 44px;
-            color: var(--text-light);
-            pointer-events: none;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 20px;
-            top: 44px;
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            font-size: 16px;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-        }
-
-        .password-toggle:hover {
-            color: var(--primary-blue);
-        }
-
-        .password-strength {
-            margin-top: 8px;
-            font-size: 14px;
-        }
-
-        .strength-meter {
-            height: 6px;
-            background: #eee;
-            border-radius: 3px;
-            margin: 8px 0;
-            overflow: hidden;
-        }
-
-        .strength-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 3px;
-            transition: all 0.3s ease;
-        }
-
-        .strength-text {
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .requirements {
-            margin-top: 12px;
-            font-size: 13px;
-            color: var(--text-light);
-        }
-
-        .requirement {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-        }
-
-        .requirement i {
-            font-size: 12px;
-            width: 16px;
-        }
-
-        .requirement.met {
-            color: var(--success-color);
-        }
-
-        .requirement.unmet {
-            color: var(--text-light);
-        }
-
-        .terms {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin: 24px 0;
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        .terms input {
-            width: 20px;
-            height: 20px;
-            margin-top: 2px;
-            cursor: pointer;
-        }
-
-        .terms a {
-            color: var(--secondary-blue);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .terms a:hover {
-            text-decoration: underline;
-        }
-
-        .btn {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
-            color: var(--white);
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: 0.5s;
-        }
-
-        .btn-primary:hover::before {
-            left: 100%;
-        }
-
-        .btn-primary:hover:not(:disabled),
-        .btn-primary:focus-visible:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 51, 102, 0.3);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .btn-spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--white);
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .login-link {
-            text-align: center;
-            font-size: 15px;
-            color: var(--text-light);
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid var(--light-gray);
-        }
-
-        .login-link a {
-            color: var(--secondary-blue);
-            text-decoration: none;
-            font-weight: 700;
-            transition: var(--transition);
-            position: relative;
-            padding: 4px 0;
-        }
-
-        .login-link a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent-gold);
-            transition: width 0.3s ease;
-        }
-
-        .login-link a:hover {
-            color: var(--primary-blue);
-        }
-
-        .login-link a:hover::after {
-            width: 100%;
-        }
-
-        @media (max-width: 992px) {
-            .app-container {
-                flex-direction: column;
-                max-width: 600px;
-            }
-
-            .brand-section {
-                min-height: 400px;
-                padding: 30px;
-            }
-
-            .brand-title {
-                font-size: 28px;
-            }
-
-            .sailboat-icon {
-                font-size: 120px;
-            }
-
-            .register-section {
-                padding: 40px 30px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            body {
-                padding: 10px;
-            }
-
-            .app-container {
-                border-radius: 16px;
-            }
-
-            .brand-section,
-            .register-section {
-                padding: 24px;
-            }
-
-            .logo {
-                margin-bottom: 30px;
-            }
-
-            .logo-text {
-                font-size: 24px;
-            }
-
-            .brand-title {
-                font-size: 24px;
-            }
-
-            .brand-subtitle {
-                font-size: 16px;
-            }
-
-            .register-title {
-                font-size: 28px;
-            }
-
-            .input-group input {
-                height: 52px;
-                padding: 0 16px;
-            }
-
-            .btn {
-                height: 52px;
-            }
-
-            .terms {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-        *:focus-visible {
-            outline: 3px solid var(--accent-gold);
-            outline-offset: 2px;
-        }
-    </style>
 </head>
 <body>
     <a href="#form-container" class="sr-only">Saltar al formulario de registro</a>
