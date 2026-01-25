@@ -36,11 +36,9 @@ if (isset($_SESSION['usuario_id']) && is_numeric($_SESSION['usuario_id'])) {
     $emailUsuario = htmlspecialchars($_SESSION['usuario_email'] ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-if (file_exists('css/styles.css')) {
-    echo "CSS existe<br>";
-} else {
-    echo "CSS NO encontrado<br>";
-}
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$base_url = $protocol . "://" . $host;
 
 ?>
 <html lang="es">
@@ -49,7 +47,7 @@ if (file_exists('css/styles.css')) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="<?php echo $base_url; ?>/css/styles.css">
 <link rel="stylesheet" 
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
       integrity="sha512-p1CmWvQg2cL0+9J1Nc9MvdSEZHt+6iweMn5LhI5UUl/FUWFuRFu8r9ZtOtjmCl8pq23THPCAAUeHz6D3Ym0hA==" 
