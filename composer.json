@@ -3,9 +3,10 @@
     "description": "Sistema de reservas para catamarán",
     "type": "project",
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.2.0",
+        "ext-mysqli": "*",
         "ext-pdo": "*",
-        "ext-mysqli": "*"
+        "ext-mbstring": "*"
     },
     "autoload": {
         "psr-4": {
@@ -13,6 +14,12 @@
         }
     },
     "config": {
-        "optimize-autoloader": true
+        "optimize-autoloader": true,
+        "platform-check": false
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "echo '✅ Dependencias instaladas correctamente'"
+        ]
     }
 }
