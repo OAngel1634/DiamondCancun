@@ -189,7 +189,7 @@ header("Pragma: no-cache");
         <!-- HERO SECTION -->
         <section class="hero" role="banner">
             <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
-                <source src="<?php echo $assetsBase; ?>imagenes/Catamaran.mp4" type="video/mp4">
+                <source src="<?php echo $assetsBase; ?>/public/assets/imagenes/Catamaran.mp4" type="video/mp4">
                 Tu navegador no soporta el elemento de video.
             </video>
             <div class="hero-content">
