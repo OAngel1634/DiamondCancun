@@ -1,4 +1,5 @@
-  :root {
+ /* ============= VARIABLES CSS ============= */
+        :root {
             --overlay-dark: rgba(0, 0, 0, 0.8);
             --overlay-light: rgba(255, 255, 255, 0.1);
             --accent: #4CAF50;
@@ -12,6 +13,7 @@
             --transition-speed: 0.3s;
         }
 
+        /* ================= RESET Y ESTILOS GENERALES ================= */
         * {
             margin: 0;
             padding: 0;
@@ -54,6 +56,7 @@
             margin: 0 auto 30px;
         }
 
+        /* ================= FOOTER ================= */
         footer {
             background: var(--overlay-dark);
             padding: 30px 20px 20px;

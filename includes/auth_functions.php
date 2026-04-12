@@ -1,10 +1,5 @@
 <?php
-// includes/auth_functions.php
 
-/**
- * Registra un nuevo usuario aplicando el hash de contraseña.
- * Retorna true si tuvo éxito o un mensaje de error.
- */
 function registrarUsuario($conn, $nombre, $email, $password) {
     // 1. Verificar si el email ya existe
     $check = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");

@@ -1,7 +1,4 @@
-/* styles.css */
-/* ============================================= */
-/* Variables Globales                            */
-/* ============================================= */
+
 :root {
   /* Colores */
   --color-dark: #111;
@@ -151,7 +148,7 @@ nav a:focus {
   z-index: 12;
 }
 
-.user-dropdown.active {
+.user-dropdown.show {
   display: block;
   animation: fadeIn 0.3s ease;
 }

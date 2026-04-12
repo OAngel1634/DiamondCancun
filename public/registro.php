@@ -3,7 +3,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth_functions.php';
 session_start();
 
-// Generar token CSRF si no existe
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }

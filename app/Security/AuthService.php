@@ -1,31 +1,42 @@
 <?php
+
 declare(strict_types=1);
 
-namespace App\Security;
+function authenticate_user(PDO $pdo, string $email, string $password): ?array {
+    $sql = "SELECT user_id, email, password_hash, user_role, is_active 
+            FROM system_users 
+            WHERE email = :email";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':email' => $email]);
+    $user = $stmt->fetch();
 
-use mysqli;
-use Exception;
-
-class AuthService {
-    public function __construct(private mysqli $db) {}
-
-    public function register(string $nombre, string $email, string $password): int {
-        if (!$this->validatePassword($password)) {
-            throw new Exception("Contraseña no cumple requisitos.");
-        }
-
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->db->prepare("INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $nombre, $email, $hash);
-        
-        if (!$stmt->execute()) {
-            throw new Exception("Error al registrar: " . $this->db->error);
-        }
-
-        return $this->db->insert_id;
+    if (!$user) {
+        return null; 
     }
 
-    private function validatePassword(string $password): bool {
-        return strlen($password) >= 8 && preg_match('/[A-Z]/', $password);
+   
+    if (empty($user['password_hash'])) {
+        return null;
     }
+
+    if (!password_verify($password, $user['password_hash'])) {
+        return null;
+    }
+
+   
+    if (!$user['is_active']) {
+        return null;
+    }
+
+   
+    return [
+        'id'     => $user['user_id'],      
+        'nombre' => explode('@', $email)[0] ?? 'Usuario', 
+        'email'  => $user['email'],
+        'rol'    => $user['user_role']
+    ];
+}
+
+function e(string $string): string {
+    return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
 }

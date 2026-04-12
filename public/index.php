@@ -1,20 +1,14 @@
 <?php
 declare(strict_types=1);
 
-// 1. FORZAR VISIBILIDAD DE ERRORES (Solo para desarrollo)
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
 $isLocal = in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']);
 
-// Sugerencia: Usa rutas relativas desde la raíz para evitar problemas de protocolo (http/https)
-define('URL_BASE', $isLocal ? '/tu-carpeta-proyecto/' : '/');
+define('URL_BASE', '');
 
 $cssUrl    = URL_BASE . 'assets/css/styles.css';
 $jsUrl     = URL_BASE . 'assets/js/index.js';
-$imagesUrl = URL_BASE . 'assets/imagenes/'; // Corregido: Coincide con el nombre usado abajo
-$assetBase = URL_BASE . 'assets/';          // Declarada: Para que el meta no falle
+$imagesUrl = URL_BASE . 'assets/imagenes/'; 
+$assetBase = URL_BASE . 'assets/';         
 
 session_start([
     'cookie_httponly' => true,
@@ -34,14 +28,13 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio – DiamondPrueba</title>
   
-  <!-- DEBUG: Información de rutas -->
+  
   <meta name="asset-base" content="<?php echo htmlspecialchars($assetBase); ?>">
   <meta name="images-url" content="<?php echo htmlspecialchars($imagesUrl); ?>">
   
   <link rel="stylesheet" 
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- CSS con ruta dinámica -->
   <link rel="stylesheet" href="<?php echo $cssUrl; ?>?v=<?php echo time(); ?>">
 
 </head>
@@ -49,14 +42,13 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
   
   <div id="content-wrapper">
     
-    <!-- NAV (mantén tu código) -->
     <nav aria-label="Navegación principal">
       <ul>
         <li><a href="./html/islamujeres.php">Isla Mujeres</a></li>
         <li><a href="./html/snorkel.php">Snorkeling</a></li>
         <li><a href="./html/club.php">Club playa</a></li>
       </ul>
-      
+     
       <div class="user-icon-container" aria-label="Acceso de usuario">
         <div class="user-icon <?php echo $isAuthenticated ? 'authenticated' : ''; ?>" 
              id="userIcon" 
@@ -67,10 +59,10 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
         </div>
         <div class="user-dropdown" id="userDropdown" aria-hidden="true">
           <?php if (!$isAuthenticated): ?>
-            <a href="./html/inicio-sesion.php" id="loginLink" role="button">
+            <a href="./inicio-sesion.php" id="loginLink" role="button">
               <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </a>
-            <a href="./html/registro.php" id="registerLink" role="button">
+            <a href="./registro.php" id="registerLink" role="button">
               <i class="fas fa-user-plus" aria-hidden="true"></i> Registrarse
             </a>
           <?php else: ?>
@@ -87,14 +79,13 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
       </div>
     </nav>
   
-    <!-- VIDEO CON RUTA CORREGIDA -->
+   
     <section class="hero" role="banner">
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
-        <!-- PRUEBA DIFERENTES RUTAS -->
+       
         <source src="<?php echo $imagesUrl; ?>Catamaran.mp4" type="video/mp4">
         <source src="assets/imagenes/Catamaran.mp4" type="video/mp4">
         <source src="public/assets/imagenes/Catamaran.mp4" type="video/mp4">
-        Tu navegador no soporta el elemento de video.
       </video>
       <div class="hero-content">
         <h1>
@@ -104,29 +95,9 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
         <p class="subtitle">Somos más que un Tour</p>
         <p class="tagline">Somos una experiencia de por vida</p>
         
-        <?php if (!$isAuthenticated): ?>
-          <div class="redirect-container">
-            <a href="./html/inicio-sesion.php" class="redirect-btn">
-              <i class="fas fa-sign-in-alt"></i> Iniciar sesión
-            </a>
-            <a href="./html/registro.php" class="redirect-btn">
-              <i class="fas fa-user-plus"></i> Registrarse
-            </a>
-          </div>
-        <?php else: ?>
-          <div class="redirect-container">
-            <a href="./dashboard.php" class="redirect-btn">
-              <i class="fas fa-user-circle"></i> Ir a mi perfil
-            </a>
-            <a href="./html/Reserva.php" class="redirect-btn">
-              <i class="fas fa-calendar-plus"></i> Hacer reserva
-            </a>
-          </div>
-        <?php endif; ?>
-      </div>
+        
     </section>
 
-    <!-- GALERÍA CON RUTAS CORREGIDAS -->
     <section class="gallery-section" aria-labelledby="gallery-heading">
       <h2 id="gallery-heading" class="section-title">Maravíllate - Inspírate - Vive el mar</h2>
       <div class="gallery">
@@ -170,12 +141,10 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
       </div>
     </section>
 
-    <!-- ACERCA DE -->
     <section class="about" aria-labelledby="about-heading">
       <div class="about-image">
         <img src="<?php echo $imagesUrl; ?>Poster.jpg" 
-             alt="Tour en Isla Mujeres con Diamond Bright"
-             onerror="console.error('Error cargando Poster.jpg')">
+             alt="Tour en Isla Mujeres con Diamond Bright">
       </div>
       <div class="about-text">
         <h2 id="about-heading">Acerca de nosotros</h2>
@@ -184,7 +153,6 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
       </div>
     </section>
 
-    <!-- PROMO -->
     <section class="promo" aria-labelledby="promo-heading">
       <div class="cta">
         <h2 id="promo-heading">Snorkel en el museo acuático</h2>
@@ -199,65 +167,15 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
              onerror="console.error('Error cargando Hand.jpg')">
       </div>
     </section>
-
-    <!-- CLIMA (mantén tu código) -->
-    <div class="weather" aria-label="Información del clima">
-      <div class="weather-top">
-        <div class="weather-left">
-          <i class="weather-icon fas fa-sun" aria-hidden="true"></i>
-          <div class="weather-info">
-            <div class="weather-temp">28°C</div>
-            <div class="weather-desc">Soleado</div>
-            <div class="weather-detail">Prob. de precipitaciones: 10%</div>
-            <div class="weather-detail">Humedad: 65%</div>
-            <div class="weather-detail">Viento: 12 km/h</div>
-          </div>
-        </div>
-        <div class="weather-time">
-          <div>Clima</div>
-          <div id="current-time"><?php echo date('l H:i'); ?></div>
-        </div>
-      </div>
-    </div>
     
     <?php 
-    $footerPath = __DIR__ . '/includes/footer.php';
+    $footerPath = __DIR__ . '/../includes/footer.php';
     if (file_exists($footerPath)) {
-        include $footerPath;
-    }
+        require_once $footerPath;
+    } 
     ?>
   </div>
-
-  <!-- SCRIPT DE DEBUG PARA VER RUTAS -->
-  <script>
-    console.log('=== DEBUG DE RUTAS ===');
-    console.log('Asset Base:', '<?php echo $assetBase; ?>');
-    console.log('Images URL:', '<?php echo $imagesUrl; ?>');
-    console.log('CSS URL:', '<?php echo $cssUrl; ?>');
-    console.log('JS URL:', '<?php echo $jsUrl; ?>');
-    
-    // Probar carga de video
-    const videoTest = new Image();
-    videoTest.onload = function() {
-        console.log('✅ Video encontrado en:', this.src);
-    };
-    videoTest.onerror = function() {
-        console.log('❌ Video NO encontrado en:', this.src);
-    };
-    videoTest.src = '<?php echo $imagesUrl; ?>Catamaran.mp4';
-    
-    // Probar carga de imagen
-    const imgTest = new Image();
-    imgTest.onload = function() {
-        console.log('✅ Imagen encontrada en:', this.src);
-    };
-    imgTest.onerror = function() {
-        console.log('❌ Imagen NO encontrada en:', this.src);
-    };
-    imgTest.src = '<?php echo $imagesUrl; ?>Poster.jpg';
-  </script>
-
-  <!-- JS con ruta dinámica -->
+ 
   <script src="<?php echo $jsUrl; ?>?v=<?php echo time(); ?>"></script>
  
 </body>
