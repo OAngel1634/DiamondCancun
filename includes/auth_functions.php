@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1);
 
-function authenticate_user(PDO $pdo, string $email, string $password): ?array {
+function authenticate_user(PDO $pdo, string $email, string $password): ?array
+{
     $sql = "SELECT user_id, email, password_hash, user_role, is_active 
             FROM system_users 
             WHERE email = :email";
@@ -9,8 +10,8 @@ function authenticate_user(PDO $pdo, string $email, string $password): ?array {
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch();
 
-    if (!$user || empty($user['password_hash'])) {
-        return null; 
+    if (!$user || empty($user['password_hash']) || !$user['is_active']) {
+        return null;
     }
 
     if (!password_verify($password, $user['password_hash'])) {
@@ -22,18 +23,20 @@ function authenticate_user(PDO $pdo, string $email, string $password): ?array {
     }
 
     return [
-        'id'     => $user['user_id'],
-        'nombre' => explode('@', $email)[0] ?? 'Usuario', // Placeholder
-        'email'  => $user['email'],
-        'rol'    => $user['user_role']
+        'id' => $user['user_id'],
+        'nombre' => explode('@', $email)[0] ?? 'Usuario',
+        'email' => $user['email'],
+        'rol' => $user['user_role']
     ];
+
 }
 
 /**
  * Registra un nuevo usuario en system_users
  * @return string|true  true si éxito, mensaje de error si falla
  */
-function registrarUsuario(PDO $pdo, string $email, string $password, string $user_role = 'customer'): string|bool {
+function registrarUsuario(PDO $pdo, string $email, string $password, string $user_role = 'customer'): string|bool
+{
     // Validaciones básicas
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         return "Email inválido.";
@@ -57,13 +60,14 @@ function registrarUsuario(PDO $pdo, string $email, string $password, string $use
     );
     $success = $stmt->execute([
         ':email' => $email,
-        ':hash'  => $hash,
-        ':role'  => $user_role
+        ':hash' => $hash,
+        ':role' => $user_role
     ]);
 
     return $success ? true : "Error al registrar el usuario.";
 }
 
-function e(string $string): string {
+function e(string $string): string
+{
     return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
 }
