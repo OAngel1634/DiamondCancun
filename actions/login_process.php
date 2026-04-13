@@ -27,6 +27,9 @@ try {
     $pdo = getConnection();
     $user = authenticate_user($pdo, $email, $password);
 
+    var_dump($user);
+exit;
+
     if (!$user) {
         error_log("Fallo de login para: " . $email . " desde IP: " . $_SERVER['REMOTE_ADDR']);
         throw new Exception("Credenciales incorrectas o cuenta inactiva.");
@@ -37,28 +40,10 @@ try {
     $_SESSION['LAST_ACTIVITY'] = time();
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
-    $redirect = '/../public/dashboard.php'; 
-    switch ($user['rol']) {
-        case 'super_admin':
-        case 'admin':
-            $redirect = '/admin/dashboard.php';
-            break;
-        case 'customer':
-            $redirect = '/cliente/mis-reservas.php';
-            break;
-        case 'captain':
-        case 'marine':
-            $redirect = '/staff/panel.php';
-            break;
-        case 'agency_admin':
-        case 'agency_agent':
-        case 'informal_agent':
-            $redirect = '/agencia/panel.php';
-            break;
-    }
+   $redirect = '/Diamond/public/dashboard.php';
 
-    header("Location: " . $redirect);
-    exit();
+header("Location: " . $redirect);
+exit();
 
 } catch (Exception $e) {
     $_SESSION['FLASH_ERROR'] = $e->getMessage();

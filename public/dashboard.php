@@ -2,6 +2,9 @@
 declare(strict_types=1);
 session_start();
 
+require_once __DIR__ . '/../includes/auth_functions.php';
+require_once __DIR__ . '/../app/Security/database.php';
+
 if (!isset($_SESSION['AUTH_USER'])) {
     header("Location: /../public/inicio-sesion.php");
     exit();
