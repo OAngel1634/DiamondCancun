@@ -84,7 +84,6 @@ $emailUsuario    = $_SESSION['usuario_email'] ?? '';
       <video class="hero-video" autoplay muted loop playsinline aria-label="Video de catamarán">
        
         <source src="<?php echo $imagesUrl; ?>Catamaran.mp4" type="video/mp4">
-        <source src="assets/imagenes/Catamaran.mp4" type="video/mp4">
         <source src="public/assets/imagenes/Catamaran.mp4" type="video/mp4">
       </video>
       <div class="hero-content">

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/../app/Security/AuthService.php';
+require_once __DIR__ . '/../includes/auth_functions.php';
 require_once __DIR__ . '/../app/Security/database.php';
 
 session_start();
@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-
+   
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
         throw new Exception("Error de seguridad: Token inválido. Recarga la página.");
     }
@@ -28,23 +28,21 @@ try {
     $user = authenticate_user($pdo, $email, $password);
 
     if (!$user) {
-  
         error_log("Fallo de login para: " . $email . " desde IP: " . $_SERVER['REMOTE_ADDR']);
         throw new Exception("Credenciales incorrectas o cuenta inactiva.");
     }
 
-   
     session_regenerate_id(true);
     
     $_SESSION['AUTH_USER'] = [
-        'id'     => (int)$user['id'],
+        'id'     => $user['id'],        
         'nombre' => $user['nombre'],
         'email'  => $user['email'],
-        'rol'    => $user['rol'] 
+        'rol'    => $user['rol']
     ];
     $_SESSION['LAST_ACTIVITY'] = time();
 
-    unset($_SESSION['csrf_token']);
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
     header("Location: /dashboard.php");
     exit();
