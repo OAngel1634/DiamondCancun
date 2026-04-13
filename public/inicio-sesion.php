@@ -15,7 +15,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 // Redirigir si ya está logueado
 if (isset($_SESSION['AUTH_USER'])) {
-    header("Location: /dashboard.php");
+    header("Location: /../public/dashboard.php");
     exit();
 }
 
