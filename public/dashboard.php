@@ -2,9 +2,6 @@
 declare(strict_types=1);
 session_start();
 
-// ---------------------------------------------------------------------
-// 1. Protección de ruta: solo usuarios autenticados
-// ---------------------------------------------------------------------
 if (!isset($_SESSION['AUTH_USER'])) {
     header("Location: /../public/inicio-sesion.php");
     exit();
@@ -13,16 +10,10 @@ if (!isset($_SESSION['AUTH_USER'])) {
 $user = $_SESSION['AUTH_USER'];
 $rol = $user['rol'] ?? 'cliente';
 
-// ---------------------------------------------------------------------
-// 2. Función de escape para evitar XSS
-// ---------------------------------------------------------------------
 function e(string $string): string {
     return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
 }
 
-// ---------------------------------------------------------------------
-// 3. Definir mensaje de bienvenida y algunas acciones según rol
-// ---------------------------------------------------------------------
 $panelTitle = 'Panel de ';
 $acciones = [];
 
@@ -93,7 +84,7 @@ switch ($rol) {
             display: flex;
             min-height: 100vh;
         }
-        /* Sidebar simple */
+       
         .sidebar {
             width: 260px;
             background: #1e293b;
@@ -140,7 +131,7 @@ switch ($rol) {
         .logout-btn:hover {
             background: #dc2626 !important;
         }
-        /* Contenido principal */
+        
         .main {
             flex: 1;
             padding: 2rem;
@@ -245,7 +236,7 @@ switch ($rol) {
                     </div>
                 <?php endforeach; ?>
             </div>
-            <p class="footer-note">🔧 Los enlaces apuntan a "#" porque son de prueba. Puedes cambiarlos por rutas reales.</p>
+            <p class="footer-note"></p>
         </div>
     </div>
 </body>

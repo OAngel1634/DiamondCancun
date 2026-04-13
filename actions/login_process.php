@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-
+ 
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
         throw new Exception("Error de seguridad: Token inválido. Recarga la página.");
     }
@@ -36,6 +36,26 @@ try {
     $_SESSION['AUTH_USER'] = $user;
     $_SESSION['LAST_ACTIVITY'] = time();
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+    $redirect = '/../public/dashboard.php'; 
+    switch ($user['rol']) {
+        case 'super_admin':
+        case 'admin':
+            $redirect = '/admin/dashboard.php';
+            break;
+        case 'customer':
+            $redirect = '/cliente/mis-reservas.php';
+            break;
+        case 'captain':
+        case 'marine':
+            $redirect = '/staff/panel.php';
+            break;
+        case 'agency_admin':
+        case 'agency_agent':
+        case 'informal_agent':
+            $redirect = '/agencia/panel.php';
+            break;
+    }
 
     header("Location: " . $redirect);
     exit();
